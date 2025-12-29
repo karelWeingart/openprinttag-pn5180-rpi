@@ -20,7 +20,7 @@ def main():
             return
         
         _uid = _uids[0]
-        print(f"✓ Found tag with UID: {_uid.hex()}")
+        print(f"✓ Found tag with UID: {_uid}")
         
         print("\nReading OpenPrintTag data...")
         _tag_data = reader.read_openprinttag(_uid)
