@@ -1,27 +1,29 @@
-import logging
 import cbor2
 import io
 from models.openprinttag_meta import OpenPrintTagMeta
 from models.openprinttag_main import OpenPrintTagMain
 
-def decode_openprinttag(payload: bytes) -> tuple[OpenPrintTagMeta | None, OpenPrintTagMain | None, dict | None] :
+
+def decode_openprinttag(
+    payload: bytes,
+) -> tuple[OpenPrintTagMeta | None, OpenPrintTagMain | None, dict | None]:
     """
     OpenPrintTag payload = meta CBOR map + main CBOR map + optional aux CBOR map                                                                             .
     """
     try:
         dec = cbor2.CBORDecoder(io.BytesIO(payload))
 
-        meta_dict = dec.decode()   # first CBOR object
-        main = dec.decode()   # second CBOR object
+        meta_dict = dec.decode()  # first CBOR object
+        main = dec.decode()  # second CBOR object
         aux = dec.decode()  # optional
-        
+
         # Convert integer keys to strings for Pydantic
         meta_dict_str = {str(k): v for k, v in meta_dict.items()}
-        main_dict_str = {str(k): v for k, v in main.items()} 
-        
+        main_dict_str = {str(k): v for k, v in main.items()}
+
         return OpenPrintTagMeta(**meta_dict_str), OpenPrintTagMain(**main_dict_str), aux
-    except Exception as e:
-        logging.error(f"cbor error: {e}")
+    except Exception:
+        # logging.error(f"cbor error: {e}")
         return None, None, None
 
 
@@ -31,19 +33,20 @@ def extract_ndef_message_from_raw(raw: bytes) -> bytes:
     Supports TLV-wrapped and raw-at-offset-0 layouts.
     """
     # Try TLV first
-    tlv_index = raw.find(b'\x03')
+    tlv_index = raw.find(b"\x03")
     if tlv_index != -1:
         length_byte = raw[tlv_index + 1]
         if length_byte != 0xFF:
             ndef_length = length_byte
             ndef_start = tlv_index + 2
         else:
-            ndef_length = (raw[tlv_index+2] << 8) | raw[tlv_index+3]
+            ndef_length = (raw[tlv_index + 2] << 8) | raw[tlv_index + 3]
             ndef_start = tlv_index + 4
         return raw[ndef_start : ndef_start + ndef_length]
 
     # Fallback: assume NDEF starts at 0
     return raw
+
 
 def iter_ndef_records(ndef: bytes):
     """
@@ -63,13 +66,13 @@ def iter_ndef_records(ndef: bytes):
         tnf = header & 0x07
 
         # minimal sanity: TNF must be 0–6, but 3 bits guarantee that
-        type_len = ndef[i+1]
+        type_len = ndef[i + 1]
 
         if sr:
-            payload_len = ndef[i+2]
+            payload_len = ndef[i + 2]
             offset = i + 3
         else:
-            payload_len = int.from_bytes(ndef[i+2:i+6], "big")
+            payload_len = int.from_bytes(ndef[i + 2 : i + 6], "big")
             offset = i + 6
 
         if il:
@@ -99,7 +102,9 @@ def iter_ndef_records(ndef: bytes):
             break
 
 
-def parse_openprinttag(raw: bytes) -> tuple[OpenPrintTagMeta | None, dict | None, dict | None] :
+def parse_openprinttag(
+    raw: bytes,
+) -> tuple[OpenPrintTagMeta | None, OpenPrintTagMain | None, dict | None]:
     """
     Detect OpenPrintTag by MIME type and return (meta, main, aux).
     """
@@ -108,7 +113,7 @@ def parse_openprinttag(raw: bytes) -> tuple[OpenPrintTagMeta | None, dict | None
     openprint_payload = None
 
     for rec in iter_ndef_records(ndef):
-        logging.error(rec)
+        # logging.error(rec)
         try:
             t = rec["type"].decode("ascii", errors="ignore")
         except UnicodeDecodeError:
@@ -119,7 +124,7 @@ def parse_openprinttag(raw: bytes) -> tuple[OpenPrintTagMeta | None, dict | None
             break
 
     if openprint_payload is None:
-        logging.error("No OpenPrintTag MIME record found")
+        # logging.error("No OpenPrintTag MIME record found")
         return None, None, None
 
     meta, main, aux = decode_openprinttag(openprint_payload)

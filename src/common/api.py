@@ -1,7 +1,6 @@
 from threading import Thread
 from queue import Queue
 from common.enum import TagReadEvent, TagReadEventType
-import time
 from typing import Callable
 import logging
 
@@ -12,9 +11,10 @@ _event_queue = Queue(1000)
 
 _callbacks: dict[TagReadEventType, list[Callable]] = {}
 
+
 # register_callback
 def register_callback(event: TagReadEventType, callback: Callable) -> None:
-    """ Register a callback for a specific TagReadEventType. 
+    """Register a callback for a specific TagReadEventType.
     More callbacks can be registered for the same event.
     Order of execution is the order of registration.
     """
@@ -22,8 +22,9 @@ def register_callback(event: TagReadEventType, callback: Callable) -> None:
         _callbacks[event] = []
     _callbacks[event].append(callback)
 
+
 def register_event(event: EventDto) -> None:
-    """ Register an event to be processed by the callbacks thread. """
+    """Register an event to be processed by the callbacks thread."""
     _event_queue.put(event)
 
 
@@ -32,24 +33,23 @@ def __get_event_type_from_event(event: EventDto) -> TagReadEventType:
         return event.event_type
     raise ValueError("Unknown event type")
 
+
 def __run_callbacks_for_event(event: EventDto) -> None:
     event_type = __get_event_type_from_event(event)
     if event_type in _callbacks:
         for callback in _callbacks[event_type]:
             callback(event)
-    else:
-        logging.debug(f"No callbacks registered for event type: {event_type}")
+    # else:
+    # logging.debug(f"No callbacks registered for event type: {event_type}")
 
-# LED controller thread
+
 def __callbacks_thread():
     while True:
-        
         if not _event_queue.empty():
             __run_callbacks_for_event(_event_queue.get())
-        
-        time.sleep(0.05)  # LED update rate
+
 
 def run() -> None:
-    """ Start the callbacks thread. """
+    """Start the callbacks thread."""
     logging.info("Starting callbacks thread...")
     Thread(target=__callbacks_thread, daemon=True).start()

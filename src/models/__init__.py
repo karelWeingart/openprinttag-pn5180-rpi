@@ -34,26 +34,26 @@ class Uuid(RootModel[UUID]):
 
 
 class Timestamp(RootModel[int]):
-    root: int = Field(..., description='UNIX timestamp')
+    root: int = Field(..., description="UNIX timestamp")
 
 
-class ColorRgba(RootModel[constr(pattern=r'^#[0-9a-f]{6}([0-9a-f]{2})?$')]):
-    root: constr(pattern=r'^#[0-9a-f]{6}([0-9a-f]{2})?$') = Field(
+class ColorRgba(RootModel[constr(pattern=r"^#[0-9a-f]{6}([0-9a-f]{2})?$")]):
+    root: constr(pattern=r"^#[0-9a-f]{6}([0-9a-f]{2})?$") = Field(
         ..., description="RGB(A) color in a standard hex notation '#RRGGBB(AA)'"
     )
 
 
 class UnknownFieldsRegion(
     RootModel[
-        dict[constr(pattern=r'^([0-9a-f]{2})+$'), constr(pattern=r'^([0-9a-f]{2})+$')]
+        dict[constr(pattern=r"^([0-9a-f]{2})+$"), constr(pattern=r"^([0-9a-f]{2})+$")]
     ]
 ):
-    root: dict[constr(pattern=r'^([0-9a-f]{2})+$'), constr(pattern=r'^([0-9a-f]{2})+$')]
+    root: dict[constr(pattern=r"^([0-9a-f]{2})+$"), constr(pattern=r"^([0-9a-f]{2})+$")]
 
 
 class Meta(BaseModel):
     model_config = ConfigDict(
-        extra='forbid',
+        extra="forbid",
     )
     main_region_offset: Int | None = None
     main_region_size: Int | None = None
@@ -63,7 +63,7 @@ class Meta(BaseModel):
 
 class Main(BaseModel):
     model_config = ConfigDict(
-        extra='forbid',
+        extra="forbid",
     )
     instance_uuid: Uuid | None = None
     package_uuid: Uuid | None = None
@@ -123,7 +123,7 @@ class Main(BaseModel):
 
 class Aux(BaseModel):
     model_config = ConfigDict(
-        extra='forbid',
+        extra="forbid",
     )
     consumed_weight: Number | None = None
     workgroup: String | None = None
@@ -133,7 +133,7 @@ class Aux(BaseModel):
 
 class Data(BaseModel):
     model_config = ConfigDict(
-        extra='forbid',
+        extra="forbid",
     )
     meta: Meta | None = None
     main: Main | None = None
@@ -142,7 +142,7 @@ class Data(BaseModel):
 
 class UnknownFields(BaseModel):
     model_config = ConfigDict(
-        extra='forbid',
+        extra="forbid",
     )
     meta: UnknownFieldsRegion | None = None
     main: UnknownFieldsRegion | None = None
@@ -150,8 +150,8 @@ class UnknownFields(BaseModel):
 
 
 class OpenprinttagJsonRepresentation(BaseModel):
-    data: Data | None = Field(None, description='Decoded data on regions of the tag')
+    data: Data | None = Field(None, description="Decoded data on regions of the tag")
     unknown_fields: UnknownFields | None = Field(
         None,
-        description='Fields that are not in the specification - specification mandates to preserve them. Kept as a key-value binary hex strings.',
+        description="Fields that are not in the specification - specification mandates to preserve them. Kept as a key-value binary hex strings.",
     )

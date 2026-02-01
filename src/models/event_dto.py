@@ -1,6 +1,8 @@
 from pydantic import BaseModel
 from common.enum import TagReadEventType
+from typing import Optional, Any
+
 
 class EventDto(BaseModel):
     event_type: TagReadEventType
-    data: dict | None = None
+    data: Optional[dict[str, Any]] = None
