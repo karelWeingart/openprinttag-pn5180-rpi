@@ -18,6 +18,19 @@ _SUCCESS_COLOR: tuple[int, int, int] = tuple(
 _LED_POINTER = pixels[0]
 
 
+def _blink(
+    color: tuple[int, int, int],
+    number_of_blinks: int = 1,
+    length_of_blink: float = 0.2,
+) -> None:
+    """Blink the LED with the specified color, number of times, and duration.  """
+    for i in range(number_of_blinks):
+        pixels[0] = color
+        time.sleep(length_of_blink)
+        pixels[0] = (0, 0, 0)
+        time.sleep(length_of_blink/i if i else length_of_blink)
+
+
 def _fade_out(
     start_color: tuple[int, int, int], steps: int = 20, delay: float = 0.05
 ) -> None:
@@ -28,13 +41,33 @@ def _fade_out(
         time.sleep(delay)
     pixels[0] = (0, 0, 0)
 
+def _on_cache_hit(_event: EventDto) -> None:
+    """Flash the LED quickly to indicate a cache hit."""
+    _color  = tuple(int(c / 5) for c in _ALERT_COLOR)
+    _blink(_color, number_of_blinks=5, length_of_blink=0.05)
+
 
 def _on_welcome(_event: EventDto) -> None:
-    _fade_out(_PRUSA_ORANGE, steps=20, delay=0.1)
+    """ on_welcome led callback. """
+    start = _PRUSA_ORANGE_COMPLEMENTARY
+    target = _PRUSA_ORANGE
+    steps = 40
+    delay = 1.0 / steps
+    sr, sg, sb = start
+    tr, tg, tb = target
+    for i in range(steps):
+        t = (i + 1) / steps
+        r = int(sr + (tr - sr) * t)
+        g = int(sg + (tg - sg) * t)
+        b = int(sb + (tb - sb) * t)
+        pixels[0] = (r, g, b)
+        time.sleep(delay)
+    pixels[0] = target
+    _fade_out(target, steps=20, delay=0.05)
 
 
 def _on_tag_detected(_event: EventDto) -> None:
-    _fade_out(tuple(int(c / 10) for c in _PRUSA_ORANGE), steps=5, delay=0.03)
+    _fade_out(tuple(int(c / 10) for c in _PRUSA_ORANGE_COMPLEMENTARY), steps=5, delay=0.03)
 
 
 def _on_error(_event: EventDto) -> None:
@@ -50,12 +83,13 @@ def _on_block_uploaded(_event: EventDto) -> None:
     _block = _event.data.get("block", 0)
     _blocks = _event.data.get("blocks", 1)
     _percent = (_block / _blocks) if _blocks else 0
+    #pixels[0] = tuple(int(c * max(_percent, 0.4)) for c in _faded_color)
     _fade_out(tuple(int(c * _percent) for c in _faded_color), steps=5, delay=0.03)
 
 
 def _on_searching(_event: EventDto) -> None:
     _fade_out(
-        tuple(int(c / 10) for c in _PRUSA_ORANGE_COMPLEMENTARY), steps=6, delay=0.02
+        tuple(int(c / 30) for c in _PRUSA_ORANGE), steps=5, delay=0.01
     )
 
 
@@ -67,3 +101,4 @@ def register_neopixel_callbacks() -> None:
     register_callback(TagReadEvent.BLOCK_UPLOADED, _on_block_uploaded)
     register_callback(TagReadEvent.SEARCHING, _on_searching)
     register_callback(TagReadEvent.WELCOME, _on_welcome)
+    register_callback(TagReadEvent.CACHE_HIT, _on_cache_hit)

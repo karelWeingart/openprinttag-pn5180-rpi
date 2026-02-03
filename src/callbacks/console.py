@@ -8,14 +8,26 @@ from typing import Optional
 def __on_tag_detected(event: EventDto) -> None:
     print(f"Tag detected with UID: {event.data.get('uid')}")
 
-
 def __on_success(event: EventDto) -> None:
     tag_info: Optional[OpenPrintTagMain] = event.data.get("tag_info")
     if tag_info:
-        print(f"Tag read successfully! {tag_info}")  # __str__() is called automatically
+        print(f"""
+OpenPrintTag Data
+===========================
+    Material Name:  {tag_info.material_name}
+    Material Type:  {tag_info.material_type}
+    Material Class: {tag_info.material_class}
+    Manufacturer:   {tag_info.manufacturer}
+    Max/Min Temp:   {tag_info.min_print_temperature}°C / {tag_info.max_print_temperature}°C
+    Max/Min Bed:    {tag_info.min_bed_temperature}°C / {tag_info.max_bed_temperature}°C
+===========================
+""")
     else:
         print("Failed to read tag information.")
 
+def __on_cache_hit(event: EventDto) -> None:
+    print(f"Returned from cache...")
+    __on_success(event)
 
 def __on_searching(event: EventDto) -> None:
     print("Searching for tags...", end="\r")
@@ -56,3 +68,4 @@ def register_default_callbacks() -> None:
     register_callback(TagReadEvent.ERROR, __on_error)
     register_callback(TagReadEvent.SEARCHING, __on_searching)
     register_callback(TagReadEvent.BLOCK_UPLOADED, __on_block_uploaded)
+    register_callback(TagReadEvent.CACHE_HIT, __on_cache_hit)

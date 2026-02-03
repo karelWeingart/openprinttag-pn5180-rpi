@@ -5,6 +5,7 @@ from enum import Enum
 class TagReadEvent(Enum):
     WELCOME = "welcome"
     SEARCHING = "searching"
+    CACHE_HIT = "cache_hit"
     TAG_DETECTED = "detected"
     READING = "reading"
     BLOCK_UPLOADED = "block_uploaded"
@@ -16,6 +17,7 @@ class TagReadEvent(Enum):
 TagReadEventType = Literal[
     TagReadEvent.WELCOME,
     TagReadEvent.SEARCHING,
+    TagReadEvent.CACHE_HIT,
     TagReadEvent.TAG_DETECTED,
     TagReadEvent.READING,
     TagReadEvent.BLOCK_UPLOADED,

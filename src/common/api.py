@@ -39,15 +39,15 @@ def __run_callbacks_for_event(event: EventDto) -> None:
     if event_type in _callbacks:
         for callback in _callbacks[event_type]:
             callback(event)
-    # else:
-    # logging.debug(f"No callbacks registered for event type: {event_type}")
-
 
 def __callbacks_thread():
     while True:
         if not _event_queue.empty():
             __run_callbacks_for_event(_event_queue.get())
 
+def get_queue_size() -> int:
+    """Get the current size of the event queue."""
+    return _event_queue.qsize()
 
 def run() -> None:
     """Start the callbacks thread."""

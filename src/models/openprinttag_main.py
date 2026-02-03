@@ -1,6 +1,6 @@
 from typing import Optional
 from datetime import datetime, timezone
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict, model_validator
 
 
 class OpenPrintTagMain(BaseModel):
@@ -9,7 +9,15 @@ class OpenPrintTagMain(BaseModel):
     Simplified model with human-readable properties.
     """
 
-    model_config = ConfigDict(populate_by_name=True, arbitrary_types_allowed=True)
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    @model_validator(mode="before")
+    @classmethod
+    def __convert_int_keys_to_str(cls, data):
+        """Convert integer keys to string keys for alias matching."""
+        if isinstance(data, dict):
+            return {str(k) if isinstance(k, int) else k: v for k, v in data.items()}
+        return data
 
     # Mapping for numeric material class -> human readable string
     _MATERIAL_CLASS_MAP = {
@@ -102,37 +110,19 @@ class OpenPrintTagMain(BaseModel):
     def model_dump(self, *args, **kwargs):
         """Customize serialization: hide raw numeric fields and expose mapped string values."""
         data = super().model_dump(*args, **kwargs)
-        # Remove the raw numeric fields
-        data.pop("material_class_raw", None)
-        data.pop("material_type_raw", None)
-        # Remove raw manufactured timestamp and expose formatted date
-        raw_ts = data.pop("manufactured_date_raw", None)
-        try:
-            if raw_ts is not None:
-                data["manufactured_date"] = datetime.fromtimestamp(
-                    int(raw_ts), tz=timezone.utc
-                ).isoformat()
-            else:
-                data["manufactured_date"] = None
-        except Exception:
-            data["manufactured_date"] = f"InvalidTimestamp({raw_ts})"
-        # Remove raw primary color bytes and expose hex string
-        raw_color = data.pop("primary_color_raw", None)
-        try:
-            if raw_color is not None:
-                # convert raw bytes to #RRGGBB using first three bytes
-                if isinstance(raw_color, (bytes, bytearray)) and len(raw_color) >= 3:
-                    r, g, b = raw_color[0], raw_color[1], raw_color[2]
-                    data["primary_color"] = f"#{r:02X}{g:02X}{b:02X}"
-                else:
-                    data["primary_color"] = None
-            else:
-                data["primary_color"] = None
-        except Exception:
-            data["primary_color"] = f"InvalidColor({raw_color})"
-        # Expose the mapped string values
+        
+        # Remove raw fields that have computed properties
+        _ = data.pop("material_class_raw", None)
+        _ = data.pop("material_type_raw", None)
+        _ = data.pop("primary_color_raw", None)
+        _ = data.pop("manufactured_date_raw", None)
+        
+        # Add computed/mapped values
         data["material_class"] = self.material_class
         data["material_type"] = self.material_type
+        data["primary_color"] = self.primary_color_hex
+        data["manufactured_date"] = self.manufactured_date
+        
         return data
 
     @property
