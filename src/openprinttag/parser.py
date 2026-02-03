@@ -17,14 +17,9 @@ def decode_openprinttag(
         main = dec.decode()  # second CBOR object
         aux = dec.decode()  # optional
 
-        # Convert integer keys to strings for Pydantic
-        meta_dict_str = {str(k): v for k, v in meta_dict.items()}
-        main_dict_str = {str(k): v for k, v in main.items()}
-
-        return OpenPrintTagMeta(**meta_dict_str), OpenPrintTagMain(**main_dict_str), aux
-    except Exception:
-        # logging.error(f"cbor error: {e}")
-        return None, None, None
+        return OpenPrintTagMeta.model_validate(meta_dict), OpenPrintTagMain.model_validate(main), aux
+    except Exception as e:
+        raise ValueError(f"Failed to decode OpenPrintTag payload: {e}") from e
 
 
 def extract_ndef_message_from_raw(raw: bytes) -> bytes:

@@ -198,12 +198,12 @@ class ExtendedISO15693Sensor(ISO15693Sensor):
                 _block_start = time.time()
 
                 _data: bytearray = None
-                # while _data is None:
-                _data = self.read_single_block(_block, pre_command=False)
-
-                #    if time.time() - _block_start > self._BLOCK_READ_TIMEOUT:
-                #        break
-
+                while _data is None:
+                    _data = self.read_single_block(_block, pre_command=False)
+                    print(".", end="", flush=True)
+                    if time.time() - _block_start > self._BLOCK_READ_TIMEOUT:
+                        break
+                print("Loaded block", _block)
                 if _data is None:
                     raise CommandError(f"Timeout reading block {_block}")
                 _raw += _data
