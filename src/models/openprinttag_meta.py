@@ -1,4 +1,4 @@
-# Meta section model
+""" Meta section model """
 from typing import Optional
 
 from pydantic import Field, BaseModel, ConfigDict, model_validator

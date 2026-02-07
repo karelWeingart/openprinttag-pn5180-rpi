@@ -37,6 +37,10 @@ def __on_error(event: EventDto) -> None:
     _error = event.data.get("error", "Unknown error")
     print(f"Error reading tag: {_error}")
 
+def __on_tag_uid_invalid(event: EventDto) -> None:
+    _uid = event.data.get("uid", "Unknown UID")
+    print(f"Invalid tag UID detected: {_uid}")
+
 
 def __on_block_uploaded(event: EventDto) -> None:
     _block = event.data.get("block")
@@ -69,3 +73,4 @@ def register_default_callbacks() -> None:
     register_callback(TagReadEvent.SEARCHING, __on_searching)
     register_callback(TagReadEvent.BLOCK_UPLOADED, __on_block_uploaded)
     register_callback(TagReadEvent.CACHE_HIT, __on_cache_hit)
+    register_callback(TagReadEvent.TAG_UID_INVALID, __on_tag_uid_invalid)

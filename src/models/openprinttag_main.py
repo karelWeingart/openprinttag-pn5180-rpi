@@ -1,3 +1,6 @@
+""" main region of openprinttag data. 
+now not all attributes are parsed.
+"""
 from typing import Optional
 from datetime import datetime, timezone
 from pydantic import BaseModel, Field, ConfigDict, model_validator
@@ -14,7 +17,9 @@ class OpenPrintTagMain(BaseModel):
     @model_validator(mode="before")
     @classmethod
     def __convert_int_keys_to_str(cls, data):
-        """Convert integer keys to string keys for alias matching."""
+        """Convert integer keys to string keys for alias matching.
+        Needed for pydantic config...
+        """
         if isinstance(data, dict):
             return {str(k) if isinstance(k, int) else k: v for k, v in data.items()}
         return data

@@ -29,13 +29,13 @@ class MQTTPublisher:
         try:
             self.client.connect(broker, port, 60)
             self.client.loop_start()
-            # print(f"MQTT connected to {broker}:{port}")
         except Exception:
-            # print(f"MQTT connection failed: {e}")
             self.client = None
 
     def _publish_tag(self, tag: OpenPrintTagMain) -> None:
-        """Publish tag information to MQTT topic in URL-encoded form data format with retain flag."""
+        """Publish tag information to MQTT topic in URL-encoded form data format with retain flag.
+        TODO: custom list of fields to be published.
+        """
 
         data = {
             "manufacturer": tag.manufacturer or "",

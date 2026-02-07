@@ -1,3 +1,4 @@
+""" Tool API to register callbacks in custom handlers. """
 from threading import Thread
 from queue import Queue
 from common.enum import TagReadEvent, TagReadEventType
@@ -29,18 +30,21 @@ def register_event(event: EventDto) -> None:
 
 
 def __get_event_type_from_event(event: EventDto) -> TagReadEventType:
+    """ simple getter for event_type. """
     if isinstance(event.event_type, TagReadEvent):
         return event.event_type
     raise ValueError("Unknown event type")
 
 
 def __run_callbacks_for_event(event: EventDto) -> None:
+    """ triggers registered callbacks per event type. """
     event_type = __get_event_type_from_event(event)
     if event_type in _callbacks:
         for callback in _callbacks[event_type]:
             callback(event)
 
-def __callbacks_thread():
+def __callbacks_thread() -> None:
+    """ thread reading event_queue and handling items by registered callbacks. """
     while True:
         if not _event_queue.empty():
             __run_callbacks_for_event(_event_queue.get())
