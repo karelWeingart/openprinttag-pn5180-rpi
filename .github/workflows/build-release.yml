@@ -4,16 +4,19 @@ on:
   push:
     tags:
       - 'v*'
-    branches:
-      - main
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    if: github.ref_type == 'tag' && github.event.base_ref == 'refs/heads/main'
     
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Check if tag is on main branch
+        run: |
+          git branch -r --contains ${{ github.ref }} | grep -q 'origin/main'
       
       - name: Set up Python
         uses: actions/setup-python@v4
