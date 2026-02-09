@@ -20,7 +20,7 @@ dependencies = [
 ]
 
 [project.scripts]
-openprinttag = "main:__main__"
+openprinttag = "src.main:__main__"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src"]
