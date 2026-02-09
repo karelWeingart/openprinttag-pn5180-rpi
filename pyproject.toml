@@ -27,3 +27,6 @@ packages = ["src"]
 
 [tool.hatch.version]
 source = "vcs"
+
+[dependency-groups]
+dev = ["ruff>=0.8.0"]
