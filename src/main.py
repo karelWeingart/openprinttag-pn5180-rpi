@@ -18,7 +18,9 @@ PIN_IRQ = 23
 SPI_CHANNEL = 0
 SPI_SPEED = 1_000_000
 
-if __name__ == "__main__":
+
+def __main__():
+    """Main entry point for OpenPrintTag application."""
     pi = pigpio.pi()
     if not pi.connected:
         raise RuntimeError("pigpio daemon not running")
@@ -44,3 +46,7 @@ if __name__ == "__main__":
         pi.stop()
         if _stopped:
             exit(0)
+
+
+if __name__ == "__main__":
+    __main__()

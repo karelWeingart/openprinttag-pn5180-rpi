@@ -26,7 +26,7 @@ OpenPrintTag Data
         print("Failed to read tag information.")
 
 def __on_cache_hit(event: EventDto) -> None:
-    print(f"Returned from cache...")
+    print("Returned from cache...")
     __on_success(event)
 
 def __on_searching(event: EventDto) -> None:

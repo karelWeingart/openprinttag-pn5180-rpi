@@ -175,5 +175,5 @@ def parse_system_info(system_info_bytes: bytes) -> Optional[dict[str, Any]]:
             info["ic_reference"] = system_info_bytes[idx]
             idx += 1
         return info
-    except Exception as e:
+    except Exception:
         return None

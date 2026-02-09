@@ -1,10 +1,10 @@
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
 
 [project]
 name = "openprinttag-pn5180-rpi"
-version = "0.1.0"
+dynamic = ["version"]
 description = "Small app that reads/write openprinttags using pn5180 on rpi."
 readme = "README.md"
 license = "GPL-3.0"
@@ -19,8 +19,11 @@ dependencies = [
     "paho-mqtt>=2.1.0",
 ]
 
+[project.scripts]
+openprinttag = "main:__main__"
+
 [tool.hatch.build.targets.wheel]
 packages = ["src"]
 
-[tool.uv]
-dev-dependencies = ["datamodel-code-generator"]
+[tool.hatch.version]
+source = "vcs"

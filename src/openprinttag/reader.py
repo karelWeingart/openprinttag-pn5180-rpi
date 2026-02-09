@@ -1,3 +1,5 @@
+""" reader module - that initializes sensor and reading thread
+S"""
 from threading import Thread
 from pn5180_rpi.sensor import (
     ExtendedISO15693Sensor,

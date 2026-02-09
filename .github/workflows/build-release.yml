@@ -1,0 +1,40 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    if: github.ref_type == 'tag' && github.event.base_ref == 'refs/heads/main'
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      
+      - name: Install uv
+        uses: astral-sh/setup-uv@v2
+      
+      - name: Lint with ruff
+        run: uv run ruff check .
+      
+      - name: Build wheel
+        run: uv build
+      
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: dist/*
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
