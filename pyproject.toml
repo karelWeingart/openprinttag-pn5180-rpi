@@ -1,11 +1,7 @@
-[build-system]
-requires = ["hatchling", "hatch-vcs"]
-build-backend = "hatchling.build"
-
 [project]
 name = "openprinttag-pn5180-rpi"
 dynamic = ["version"]
-description = "Small app that reads/write openprinttags using pn5180 on rpi."
+description = "Small app that reads openprinttags using pn5180 on rpi."
 readme = "README.md"
 license = "GPL-3.0"
 requires-python = ">=3.11"
@@ -13,20 +9,19 @@ dependencies = [
     "cbor2>=5.4.0",
     "pyyaml>=6.0",
     "pn5180pi",
-    "pydantic2>=1.1.15",
+    "pydantic>=2.0.0",
     "rpi-ws281x>=5.0.0",
     "adafruit-circuitpython-neopixel>=6.3.21",
     "paho-mqtt>=2.1.0",
+    "pigpio>=1.78",
 ]
 
 [project.scripts]
-openprinttag = "src.main:__main__"
-
-[tool.hatch.build.targets.wheel]
-packages = ["src"]
-
-[tool.hatch.version]
-source = "vcs"
+openprinttag = "main:__main__"
 
 [dependency-groups]
 dev = ["ruff>=0.8.0"]
+
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
