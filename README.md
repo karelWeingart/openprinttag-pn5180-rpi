@@ -1,3 +1,5 @@
+
+[![GitHub Release](https://img.shields.io/github/v/release/karelWeingart/openprinttag-pn5180-rpi)](https://github.com/karelWeingart/openprinttag-pn5180-rpi/releases)
 # OpenPrintTag PN5180 RPi
 
 A Raspberry Pi application for reading OpenPrintTags using the PN5180 NFC reader. This project implements a couple of hooks for which callbacks can be registered. 
@@ -110,7 +112,9 @@ These callbacks are implemented and may be used out of box
 
 1. **Install the package by pip**:
    ```bash
-   sudo pip install https://github.com/karelWeingart/openprinttag-pn5180-rpi/releases/download/v0.1.0/openprinttag_pn5180_rpi-0.1.0-py3-none-any.whl --break-system-packages
+   # Get the latest release and install it
+   LATEST_RELEASE=$(curl -s https://api.github.com/repos/karelWeingart/openprinttag-pn5180-rpi/releases/latest | grep -o '"tag_name": "[^"]*' | cut -d'"' -f4)
+   sudo pip install https://github.com/karelWeingart/openprinttag-pn5180-rpi/releases/download/${LATEST_RELEASE}/openprinttag_pn5180_rpi-${LATEST_RELEASE#v}-py3-none-any.whl --break-system-packages
    ```
 
 ## Usage
