@@ -89,9 +89,9 @@ void printSplitLine(DisplayType &display, const char* key, const char* value,
 
     if (inverse) {
         display.fillRect(0, cursorY - lineHeight + 4,
-                         display.width(),
-                         lineHeight,
-                         GxEPD_BLACK);
+                        display.width(),
+                        lineHeight,
+                        GxEPD_BLACK);
         display.setTextColor(GxEPD_WHITE);
     } else {
         display.setTextColor(GxEPD_BLACK);
@@ -131,22 +131,22 @@ void renderBatteryBar(DisplayType &display, float maxVoltage, float minVoltage, 
 }
 
 void initWiFi() {
-  WiFi.mode(WIFI_STA);
-  WiFi.begin(ssid, password);
-  while(WiFi.status() !=WL_CONNECTED){
-    delay(500);
-    Serial.print(".");
-  }
-  Serial.println(WiFi.localIP());
+    WiFi.mode(WIFI_STA);
+    WiFi.begin(ssid, password);
+    while(WiFi.status() !=WL_CONNECTED){
+        delay(500);
+        Serial.print(".");
+    }
+    Serial.println(WiFi.localIP());
 }
 
 void initDisplay() {
-  pinMode(2, OUTPUT);
-  digitalWrite(2, HIGH);
-  Serial.println("Display power ON");
- 
-  display.init(); 
-  display.setRotation(1);
+    pinMode(2, OUTPUT);
+    digitalWrite(2, HIGH);
+    Serial.println("Display power ON");
+
+    display.init(); 
+    display.setRotation(1);
 }
 
 void parseFormData() {
@@ -197,17 +197,17 @@ void renderDisplay() {
 
 void connectMqtt() { 
     while (!client.connected()) { 
-    	Serial.print("Attempting MQTT connection..."); 
-    	if (client.connect("ESP32Client")) { 
-    		Serial.println("connected"); 
-    		client.subscribe(mqttTopic); } 
-    	else { 
-    		Serial.print("failed, rc="); 
-    		Serial.print(client.state()); 
-    		Serial.println(" retrying in 5 seconds"); 
-    		delay(5000); 
-    	} 
-    } 
+        Serial.print("Attempting MQTT connection..."); 
+        if (client.connect("ESP32Client")) { 
+            Serial.println("connected"); 
+            client.subscribe(mqttTopic); } 
+        else { 
+            Serial.print("failed, rc="); 
+            Serial.print(client.state()); 
+            Serial.println(" retrying in 5 seconds"); 
+            delay(5000); 
+        } 
+    }
 }
 
 void callback(char* topic, byte* payload, unsigned int length) {
@@ -235,40 +235,40 @@ void callback(char* topic, byte* payload, unsigned int length) {
 }
 
 void setup() {
-  Serial.begin(115200);
-  delay(100);  
-  
-  esp_sleep_wakeup_cause_t cause = esp_sleep_get_wakeup_cause();  
-  if (cause == ESP_SLEEP_WAKEUP_UNDEFINED || wakeCount > REDRAW_WAKE_THRESHOLD) {
-      renderDisplay();
-      wakeCount = 0;
-      esp_sleep_enable_timer_wakeup(1 * 1000000ULL);
-      delay(50);
-      esp_deep_sleep_start(); 
-  } else {
-    wakeCount++;
-  }
-  client.setServer(mqttServer, mqttPort);
-  client.setCallback(callback);
+    Serial.begin(115200);
+    delay(100);  
 
-  initWiFi();
-  if (!client.connected()) { 
-    connectMqtt(); 
-  } 
-  unsigned long start = millis();
+    esp_sleep_wakeup_cause_t cause = esp_sleep_get_wakeup_cause();  
+    if (cause == ESP_SLEEP_WAKEUP_UNDEFINED || wakeCount > REDRAW_WAKE_THRESHOLD) {
+        renderDisplay();
+        wakeCount = 0;
+        esp_sleep_enable_timer_wakeup(1 * 1000000ULL);
+        delay(50);
+        esp_deep_sleep_start(); 
+    } else {
+        wakeCount++;
+    }
+    client.setServer(mqttServer, mqttPort);
+    client.setCallback(callback);
+
+    initWiFi();
+    if (!client.connected()) { 
+        connectMqtt(); 
+    } 
+    unsigned long start = millis();
 
 
-  while (millis() - start < WAKEUP_TIME * 1000) {
-    client.loop();
-    if (messageReceived) break;
-  }
-  if (messageReceived) {
-    Serial.println("Message received → staying awake");
-  }
+    while (millis() - start < WAKEUP_TIME * 1000) {
+        client.loop();
+        if (messageReceived) break;
+    }
+    if (messageReceived) {
+        Serial.println("Message received → staying awake");
+    }
 
-  esp_sleep_enable_timer_wakeup((uint64_t)SLEEP_SECONDS * 1000000ULL);
-  delay(50);
-  esp_deep_sleep_start(); 
+    esp_sleep_enable_timer_wakeup((uint64_t)SLEEP_SECONDS * 1000000ULL);
+    delay(50);
+    esp_deep_sleep_start(); 
 }
 
 void loop() {

@@ -8,14 +8,16 @@ from models.openprinttag_main import OpenPrintTagMain
 from models.event_dto import EventDto
 from common.api import register_callback
 from common.enum import TagReadEvent
-from urllib.parse import urlencode
 
 
 class MQTTPublisher:
     """Publishes tag information via MQTT."""
 
     def __init__(
-        self, broker: str = "localhost", port: int = 1883, topic: str = "rfid/tag"
+        self, 
+        broker: str = "localhost",
+        port: int = 1883, 
+        topic: str = "rfid/tag"
     ):
         """
         Initialize MQTT publisher.
@@ -38,19 +40,15 @@ class MQTTPublisher:
         """
 
         data = {
-            "manufacturer": tag.manufacturer or "",
-            "material": tag.material_name or "",
-            "color": tag.primary_color_hex or "",
-            "min_print_temp": tag.min_print_temperature or 0,
-            "max_print_temp": tag.max_print_temperature or 0,
-            "preheat_temp": tag.preheat_temperature or 0,
-            "min_bed_temp": tag.min_bed_temperature or 0,
-            "max_bed_temp": tag.max_bed_temperature or 0,
-        }
-        payload = urlencode(data)
+                "Material": tag.material_name or tag.material_abbreviation,
+                "Manufacturer": tag.manufacturer or 'Unknown',
+                "Color": tag.primary_color_hex or "",
+                "Max/Min Temp": f"{tag.min_print_temperature or '-'}/{tag.max_print_temperature or '-'}",
+            }
 
         try:
-            self.client.publish(self.topic, payload, retain=True)
+            _body = "&".join(f"{k}={'' if v is None else str(v)}" for k, v in data.items())
+            _ = self.client.publish(self.topic, _body, retain=True)
         except Exception as e:
             logging.error(f"MQTT publish failed: {e}")
 
@@ -62,7 +60,7 @@ class MQTTPublisher:
 
 
 def setup_mqtt_publisher(
-    broker: str = "localhost", port: int = 1883, topic: str = "openprinttag"
+    broker: str = "localhost", port: int = 1883, topic: str = "rfid/tag"
 ):
     """Setup MQTT publisher and register callbacks."""
     _publisher = MQTTPublisher(broker, port, topic)
