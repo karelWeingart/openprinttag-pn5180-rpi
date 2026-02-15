@@ -14,12 +14,13 @@ def __on_success(event: EventDto) -> None:
         print(f"""
 OpenPrintTag Data
 ===========================
-    Material Name:  {tag_info.material_name}
-    Material Type:  {tag_info.material_type}
-    Material Class: {tag_info.material_class}
-    Manufacturer:   {tag_info.manufacturer}
-    Max/Min Temp:   {tag_info.min_print_temperature}°C / {tag_info.max_print_temperature}°C
-    Max/Min Bed:    {tag_info.min_bed_temperature}°C / {tag_info.max_bed_temperature}°C
+    Material Name:          {tag_info.material_name}
+    Material Type:          {tag_info.material_type}
+    Material Class:         {tag_info.material_class}
+    Manufacturer:           {tag_info.manufacturer}
+    Short Material Name:    {tag_info.material_abbreviation}
+    Max/Min Temp:           {tag_info.min_print_temperature}°C / {tag_info.max_print_temperature}°C
+    Max/Min Bed:            {tag_info.min_bed_temperature}°C / {tag_info.max_bed_temperature}°C
 ===========================
 """)
     else:
