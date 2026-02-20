@@ -8,6 +8,7 @@ import time
 from callbacks.console import register_default_callbacks
 from callbacks.led_neopixel import register_neopixel_callbacks
 from callbacks.mqtt_publisher import setup_mqtt_publisher
+from mqtt.tag_write_queue import setup_write_queue
 from openprinttag.reader import run as run_openprinttag_reader
 from common.api import run as run_callbacks_thread
 
@@ -33,6 +34,7 @@ def __main__():
     register_default_callbacks()
     register_neopixel_callbacks()
     setup_mqtt_publisher()
+    setup_write_queue()
     run_callbacks_thread()
     run_openprinttag_reader(pi)
     _stopped = False

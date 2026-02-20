@@ -10,7 +10,8 @@ These callbacks are implemented and may be used out of box
 
 ## Features
 
-- **NFC Tag Reading**: Read OpenPrintTag data (material properties, temperatures, colors, etc.)
+- **OpenPrintTag Reading**: Read OpenPrintTag data (material properties, temperatures, colors, etc.)
+- **OpenPrintTag Writing**: Writes bin data from mqtt topic to first tag found.
 - **Callback System**: Extensible event-driven architecture for custom handlers
 - **Tag Caching**: 120-second cache to reduce redundant reads
 
@@ -79,6 +80,7 @@ These callbacks are implemented and may be used out of box
 - **git**: cloning the repository
 - **pigpio daemon**: For GPIO hardware access
 - **SPI interface**: Enabled on Raspberry Pi
+- **MQTT Broker**: needed for writing openprinttag data into tags. 
 
 ### System Setup
 
@@ -101,7 +103,7 @@ These callbacks are implemented and may be used out of box
    ps aux | grep pigpiod
    ```
 
-4. **(Optional) Install MQTT Broker**:
+4. **Install MQTT Broker**:
    ```bash
    sudo apt-get install mosquitto mosquitto-clients
    sudo systemctl enable mosquitto
@@ -114,7 +116,7 @@ These callbacks are implemented and may be used out of box
    ```bash
    # Get the latest release and install it
    LATEST_RELEASE=$(curl -s https://api.github.com/repos/karelWeingart/openprinttag-pn5180-rpi/releases/latest | grep -o '"tag_name": "[^"]*' | cut -d'"' -f4)
-   sudo pip install https://github.com/karelWeingart/openprinttag-pn5180-rpi/releases/download/${LATEST_RELEASE}/openprinttag_pn5180_rpi-${LATEST_RELEASE#v}-py3-none-any.whl --break-system-packages
+   sudo pip install https://github.com/karelWeingart/openprinttag-pn5180-rpi/releases/download/${LATEST_RELEASE}/openprinttag_pn5180_rpi-${LATEST_RELEASE#v}-py3-none-any.whl --break-system-packages --force-reinstall
    ```
 
 ## Usage
@@ -173,27 +175,6 @@ Error: board.D18 not found
 Solution: Check GPIO pin configuration and Adafruit CircuitPython board support
 Error: RuntimeError: ws2811_init failed with code -9 (Failed to create mailbox device)
 Solution: install and run the project as a root.
-```
-
-## Project Structure
-
-```
-src/
-├── main.py                 # Main application entry point
-├── callbacks/
-│   ├── console.py         # Console logging callbacks
-│   ├── led_neopixel.py    # NeoPixel LED control
-│   └── mqtt_publisher.py  # MQTT publishing
-├── common/
-│   ├── api.py             # Event callback API (if you want to implement your callback)
-│   └── enum.py            # Event types
-├── models/
-│   ├── event_dto.py       # Event data transfer object
-│   ├── openprinttag_main.py  # Main tag model
-│   └── openprinttag_meta.py  # Tag metadata
-└── openprinttag/
-    ├── parser.py          # Tag data parser
-    └── reader.py          # NFC reader thread
 ```
 
 ## License

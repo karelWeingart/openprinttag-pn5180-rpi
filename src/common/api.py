@@ -46,8 +46,8 @@ def __run_callbacks_for_event(event: EventDto) -> None:
 def __callbacks_thread() -> None:
     """ thread reading event_queue and handling items by registered callbacks. """
     while True:
-        if not _event_queue.empty():
-            __run_callbacks_for_event(_event_queue.get())
+        event = _event_queue.get(block=True)
+        __run_callbacks_for_event(event)
 
 def get_queue_size() -> int:
     """Get the current size of the event queue."""

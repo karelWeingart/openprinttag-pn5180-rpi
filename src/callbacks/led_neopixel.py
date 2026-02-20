@@ -9,7 +9,7 @@ import neopixel
 TODO: parametrize this.
 """
 pixels = neopixel.NeoPixel(
-    board.D18, 1, brightness=0.2, auto_write=True, pixel_order=neopixel.GRB
+    board.D18, 1, brightness=0.7, auto_write=True, pixel_order=neopixel.GRB
 )
 
 _PRUSA_ORANGE: tuple[int, int, int] = (80, 253, 0)
@@ -97,20 +97,27 @@ def _on_block_uploaded(_event: EventDto) -> None:
     _fade_out(tuple(int(c * _percent) for c in _faded_color), steps=5, delay=0.03)
 
 
-def _on_searching(_event: EventDto) -> None:
-    """ TagReadEvent.SEARCHING  callback. """
+def _on_searching_read(_event: EventDto) -> None:
+    """ TagReadEvent.SEARCHING_READ callback. """
     _fade_out(
-        tuple(int(c / 30) for c in _PRUSA_ORANGE), steps=5, delay=0.01
+        tuple(int(c / 30) for c in _SUCCESS_COLOR), steps=5, delay=0.01
     )
+
+def _on_searching_write(_event: EventDto) -> None:
+    """ TagReadEvent.SEARCHING_WRITE callback. """
+    _fade_out(_ALERT_COLOR,steps=10, delay=0.01)
 
 
 def register_neopixel_callbacks() -> None:
     """Register NeoPixel LED callbacks for RFID events."""
     register_callback(TagReadEvent.TAG_DETECTED, _on_tag_detected)
     register_callback(TagReadEvent.ERROR, _on_error)
-    register_callback(TagReadEvent.SUCCESS, _on_success)
+    register_callback(TagReadEvent.SUCCESS_READ, _on_success)
+    register_callback(TagReadEvent.SUCCESS_WRITE, _on_success)
     register_callback(TagReadEvent.BLOCK_UPLOADED, _on_block_uploaded)
-    register_callback(TagReadEvent.SEARCHING, _on_searching)
+    register_callback(TagReadEvent.BLOCK_WRITTEN, _on_block_uploaded)
+    register_callback(TagReadEvent.SEARCHING_READ, _on_searching_read)
     register_callback(TagReadEvent.WELCOME, _on_welcome)
     register_callback(TagReadEvent.CACHE_HIT, _on_cache_hit)
     register_callback(TagReadEvent.TAG_UID_INVALID, _on_tag_uid_invalid)
+    register_callback(TagReadEvent.SEARCHING_WRITE, _on_searching_write)
