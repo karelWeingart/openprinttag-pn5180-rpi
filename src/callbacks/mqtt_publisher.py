@@ -65,4 +65,4 @@ def setup_mqtt_publisher(
     """Setup MQTT publisher and register callbacks."""
     _publisher = MQTTPublisher(broker, port, topic)
     if _publisher.client:
-        register_callback(TagReadEvent.SUCCESS, _publisher.on_success)
+        register_callback(TagReadEvent.SUCCESS_READ, _publisher.on_success)

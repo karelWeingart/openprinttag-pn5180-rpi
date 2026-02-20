@@ -115,13 +115,7 @@ class OpenPrintTagMain(BaseModel):
     def model_dump(self, *args, **kwargs):
         """Customize serialization: hide raw numeric fields and expose mapped string values."""
         data = super().model_dump(*args, **kwargs)
-        
-        # Remove raw fields that have computed properties
-        _ = data.pop("material_class_raw", None)
-        _ = data.pop("material_type_raw", None)
-        _ = data.pop("primary_color_raw", None)
-        _ = data.pop("manufactured_date_raw", None)
-        
+
         # Add computed/mapped values
         data["material_class"] = self.material_class
         data["material_type"] = self.material_type
