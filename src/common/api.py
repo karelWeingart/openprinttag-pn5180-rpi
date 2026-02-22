@@ -8,9 +8,9 @@ import logging
 from models.event_dto import EventDto
 
 # Event queue
-_event_queue = Queue(1000)
+_event_queue: Queue[EventDto] = Queue(1000)
 
-_callbacks: dict[TagReadEventType, list[Callable]] = {}
+_callbacks: dict[TagReadEventType, list[Callable[[EventDto], None]]] = {}
 
 
 # register_callback

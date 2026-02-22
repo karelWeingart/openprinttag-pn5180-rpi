@@ -42,7 +42,7 @@ class MQTTPublisher:
         data = {
                 "Material": tag.material_name or tag.material_abbreviation,
                 "Manufacturer": tag.manufacturer or 'Unknown',
-                "Color": tag.primary_color_hex or "",
+                "Color": tag.get_human_readable_color() or tag.primary_color_hex or 'Unknown',
                 "Max/Min Temp": f"{tag.min_print_temperature or '-'}/{tag.max_print_temperature or '-'}",
             }
 

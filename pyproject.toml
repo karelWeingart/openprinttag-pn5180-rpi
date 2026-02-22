@@ -14,6 +14,7 @@ dependencies = [
     "adafruit-circuitpython-neopixel>=6.3.21",
     "paho-mqtt>=2.1.0",
     "pigpio>=1.78",
+    "pillow>=12.1.1",
 ]
 
 [project.scripts]
@@ -21,6 +22,7 @@ openprinttag = "main:__main__"
 
 [dependency-groups]
 dev = [
+    "mypy>=1.19.1",
     "ruff>=0.8.0",
     "setuptools-scm>=9.2.2",
 ]
@@ -32,3 +34,7 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools_scm]
 write_to = "src/_version.py"
 fallback_version = "0.0.0"
+
+[tool.mypy]
+mypy_path = "src"
+explicit_package_bases = true

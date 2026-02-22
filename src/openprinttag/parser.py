@@ -8,7 +8,7 @@ from models.openprinttag_main import OpenPrintTagMain
 
 def decode_openprinttag(
     payload: bytes,
-) -> tuple[OpenPrintTagMeta | None, OpenPrintTagMain | None, dict | None]:
+) -> tuple[OpenPrintTagMeta | None, OpenPrintTagMain | None, object | None]:
     """
     OpenPrintTag payload = meta CBOR map + main CBOR map + optional aux CBOR map                                                                             .
     """
@@ -101,7 +101,7 @@ def iter_ndef_records(ndef: bytes):
 
 def parse_openprinttag(
     raw: bytes,
-) -> tuple[OpenPrintTagMeta | None, OpenPrintTagMain | None, dict | None]:
+) -> tuple[OpenPrintTagMeta | None, OpenPrintTagMain | None, object | None]:
     """
     Detect OpenPrintTag by MIME type and return (meta, main, aux).
     """
@@ -139,7 +139,7 @@ def parse_system_info(system_info_bytes: bytes) -> Optional[dict[str, Any]]:
     if not system_info_bytes or len(system_info_bytes) < 10:
         return None
     try:
-        info = {}
+        info: dict[str, Any] = {}
         idx = 0
         # Byte 0: Response flags
         info["response_flags"] = system_info_bytes[idx]

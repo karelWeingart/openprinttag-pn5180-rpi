@@ -4,6 +4,7 @@ now not all attributes are parsed.
 from typing import Optional
 from datetime import datetime, timezone
 from pydantic import BaseModel, Field, ConfigDict, model_validator
+from utils.conversion import closest_color
 
 
 class OpenPrintTagMain(BaseModel):
@@ -142,6 +143,13 @@ class OpenPrintTagMain(BaseModel):
         if self.instance_uuid and isinstance(self.instance_uuid, bytes):
             return self.instance_uuid.hex()
         return None
+    
+    def get_human_readable_color(self) -> Optional[str]:
+        """Get human-readable color name"""
+        hex_color = self.primary_color_hex
+        if hex_color is None:
+            return None
+        return closest_color(hex_color)
 
     def __repr__(self) -> str:
         """String representation with manufacturer, filament name, and type"""

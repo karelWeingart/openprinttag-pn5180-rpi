@@ -4,7 +4,6 @@ from models.event_dto import EventDto
 from pn5180.sensor import ISO15693Sensor
 import time
 from pn5180.definitions import CMD_SEND_DATA
-from typing import Optional
 
 
 class PreCommandError(Exception):
@@ -56,7 +55,7 @@ class ExtendedISO15693Sensor(ISO15693Sensor):
         except Exception as e:
             raise PostCommandError(f"Error in post-command setup: {e}") from e
 
-    def __command(self, frame: bytearray, pre_command: bool = True) -> bytearray:
+    def __command(self, frame: bytearray, pre_command: bool = True) -> bytes | None:
         """ sends PN5180 command and waits for data. """
         if pre_command:
             self.__pre_command()
@@ -66,9 +65,9 @@ class ExtendedISO15693Sensor(ISO15693Sensor):
 
             time.sleep(self._READ_WAIT_TIME)
 
-            _response: bytearray = self.__get_response_data()
+            _response: bytearray | None = self.__get_response_data()
 
-            return bytes(_response)
+            return bytes(_response) if _response else None
         except Exception as e:
             raise CommandError(f"Error getting data for a command: {e}") from e
         finally:
@@ -95,7 +94,7 @@ class ExtendedISO15693Sensor(ISO15693Sensor):
             raise RuntimeError("Tag returned error response")
         return _response
 
-    def get_system_info(self) -> Optional[bytes]:
+    def get_system_info(self) -> bytes | None:
         """
         Get system information from an ISO15693 tag.
 
@@ -104,15 +103,15 @@ class ExtendedISO15693Sensor(ISO15693Sensor):
         """
         _flags = 0x02
         _command = 0x2B
-        _frame = [CMD_SEND_DATA, 0x00, _flags, _command]
+        _frame: bytearray = bytearray([CMD_SEND_DATA, 0x00, _flags, _command])
         return self.__command(_frame)
 
-    def read_single_block(self, block: int, pre_command: bool = True) -> bytes:
+    def read_single_block(self, block: int, pre_command: bool = True) -> bytes | None:
         """
         Read a single ISO15693 block.
         Returns raw block data (bytes) or None.
         """
-        frame = [CMD_SEND_DATA, 0x00, 0x02, 0x20, block]
+        frame = bytearray([CMD_SEND_DATA, 0x00, 0x02, 0x20, block])
         _data = self.__command(frame, pre_command=pre_command)
         if _data:
             return bytes(_data[1:])
@@ -129,7 +128,7 @@ class ExtendedISO15693Sensor(ISO15693Sensor):
             True if write succeeded, False otherwise.
         """
         # ISO15693 Write Single Block: flags=0x02 (non-addressed), command=0x21
-        frame = [CMD_SEND_DATA, 0x00, 0x02, 0x21, block] + list(data)
+        frame = bytearray([CMD_SEND_DATA, 0x00, 0x02, 0x21, block] + list(data))
         response = self.__command(frame, pre_command=pre_command)
         return response is not None
 
@@ -199,7 +198,7 @@ class ExtendedISO15693Sensor(ISO15693Sensor):
             for _block in range(blocks):
                 _block_start = time.time()
 
-                _data: bytearray = None
+                _data: bytes | None = None
                 while _data is None:
                     _data = self.read_single_block(_block, pre_command=False)
                     if time.time() - _block_start > self._BLOCK_READ_TIMEOUT:

@@ -19,6 +19,7 @@ OpenPrintTag Data
     Material Class:         {tag_info.material_class}
     Manufacturer:           {tag_info.manufacturer}
     Short Material Name:    {tag_info.material_abbreviation}
+    Primary Color:         {tag_info.primary_color_hex} ({tag_info.get_human_readable_color()})
     Max/Min Temp:           {tag_info.min_print_temperature}°C / {tag_info.max_print_temperature}°C
     Max/Min Bed:            {tag_info.min_bed_temperature}°C / {tag_info.max_bed_temperature}°C
 ===========================
