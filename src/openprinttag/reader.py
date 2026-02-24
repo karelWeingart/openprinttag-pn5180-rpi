@@ -1,7 +1,7 @@
 """ reader module - that initializes sensor and reading thread
 S"""
 from threading import Thread
-from typing import Literal
+from typing import Any, Literal
 from pn5180_rpi.sensor import (
     ExtendedISO15693Sensor,
     CommandError,
@@ -11,7 +11,7 @@ from pn5180_rpi.sensor import (
 from models.event_dto import EventDto
 from openprinttag.parser import parse_openprinttag, parse_system_info
 from mqtt.tag_write_queue import get_openprinttag_bin, has_openprinttag_bin
-import pigpio
+import pigpio  # type: ignore[import-untyped]
 import time
 from common.api import TagReadEvent, get_queue_size, register_event
 from models.openprinttag_main import OpenPrintTagMain
@@ -25,7 +25,7 @@ _TAG_CACHE_: dict[str, tuple[OpenPrintTagMain, float]] = {}
 _TAG_CACHE_TTL: float = 120.0  # seconds
 
 
-def read_openprinttag(reader: ExtendedISO15693Sensor, num_blocks: int) -> OpenPrintTagMain:
+def read_openprinttag(reader: ExtendedISO15693Sensor, num_blocks: int) -> OpenPrintTagMain | None:
     """Reads OpenPrintTag data from the tag using the provided reader."""
     try:
         _data = reader.read_multi_blocks(num_blocks)
@@ -85,7 +85,9 @@ def get_number_blocks(reader: ExtendedISO15693Sensor) -> int:
     """
     try:
         _info = reader.get_system_info()
-        _info_dict = parse_system_info(_info)
+        _info_dict: dict[str, Any] | None = None
+        if _info:
+            _info_dict = parse_system_info(_info)
         if _info_dict:
             return _info_dict.get("num_blocks", 255)
         else:
@@ -178,17 +180,19 @@ def __pn5180_thread(reader: ExtendedISO15693Sensor) -> None:
     """ Thread for reading rfid tags. Also handles write operations from queue. """
     while True:
         # Check for pending write operations first
-        _openprinttag_data:bytes = get_openprinttag_bin()
+        _openprinttag_data: bytes | None = get_openprinttag_bin()
 
         # Write mode
         if _openprinttag_data:
             _uid = search_tag(reader, search_type=TagReadEvent.SEARCHING_WRITE, skip_cache=True)
+            if not _uid:
+                continue
             write_openprinttag(reader, _uid, _openprinttag_data)
             _wait_for_empty_queue()
             continue
         
         # Read mode - search for tags and read data
-        _uid: str = search_tag(reader)
+        _uid = search_tag(reader)
         # If _uid is None here, it means we got interrupted.
         # and should write data to first tag detected.
         if not _uid:

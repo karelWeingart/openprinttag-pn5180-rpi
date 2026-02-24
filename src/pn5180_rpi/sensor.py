@@ -55,19 +55,19 @@ class ExtendedISO15693Sensor(ISO15693Sensor):
         except Exception as e:
             raise PostCommandError(f"Error in post-command setup: {e}") from e
 
-    def __command(self, frame: bytearray, pre_command: bool = True) -> bytes | None:
+    def __command(self, frame: bytearray, pre_command: bool = True) -> bytes:
         """ sends PN5180 command and waits for data. """
         if pre_command:
             self.__pre_command()
 
         try:
-            self._write(frame)
+            self._write(frame)  # type: ignore[arg-type]
 
             time.sleep(self._READ_WAIT_TIME)
 
             _response: bytearray | None = self.__get_response_data()
 
-            return bytes(_response) if _response else None
+            return bytes(_response) if _response else b""
         except Exception as e:
             raise CommandError(f"Error getting data for a command: {e}") from e
         finally:
@@ -86,7 +86,7 @@ class ExtendedISO15693Sensor(ISO15693Sensor):
             return None
 
         self._read_data_cmd()
-        _response: bytearray = self._read(_response_length)
+        _response: bytearray = self._read(_response_length)  # type: ignore[assignment]
 
         _response_flags = _response[0]
         if _response_flags & 0x01:
@@ -94,7 +94,7 @@ class ExtendedISO15693Sensor(ISO15693Sensor):
             raise RuntimeError("Tag returned error response")
         return _response
 
-    def get_system_info(self) -> bytes | None:
+    def get_system_info(self) -> bytes:
         """
         Get system information from an ISO15693 tag.
 

@@ -1,9 +1,9 @@
 """ Simple module to handle openprinttag-pn5180 events for neopixel led """
-import board
+import board  # type: ignore[import-untyped]
 from common.api import register_callback, TagReadEvent
 from models.event_dto import EventDto
 import time
-import neopixel
+import neopixel  # type: ignore[import-untyped]
 
 """ Default setup. 
 TODO: parametrize this.
@@ -15,9 +15,12 @@ pixels = neopixel.NeoPixel(
 _PRUSA_ORANGE: tuple[int, int, int] = (80, 253, 0)
 _PRUSA_ORANGE_COMPLEMENTARY: tuple[int, int, int] = (175, 2, 255)
 _ALERT_COLOR: tuple[int, int, int] = (5, 64, 0)
-_SUCCESS_COLOR: tuple[int, int, int] = tuple(
-    int(c / 4) for c in _PRUSA_ORANGE_COMPLEMENTARY
-)
+
+def _dim_color(color: tuple[int, int, int], divisor: int) -> tuple[int, int, int]:
+    r, g, b = color
+    return (r // divisor, g // divisor, b // divisor)
+
+_SUCCESS_COLOR: tuple[int, int, int] = _dim_color(_PRUSA_ORANGE_COMPLEMENTARY, 4)
 
 def _blink(
     color: tuple[int, int, int],
@@ -47,8 +50,7 @@ def _fade_out(
 
 def _on_cache_hit(_event: EventDto) -> None:
     """Flash the LED quickly to indicate a cache hit."""
-    _color  = tuple(int(c / 5) for c in _SUCCESS_COLOR)
-    _blink(_color, number_of_blinks=5, length_of_blink=0.05)
+    _blink(_dim_color(_SUCCESS_COLOR, 5), number_of_blinks=5, length_of_blink=0.05)
 
 def _on_tag_uid_invalid(_event: EventDto) -> None:
     """Flash the LED in alert color to indicate an invalid tag UID."""
@@ -75,7 +77,7 @@ def _on_welcome(_event: EventDto) -> None:
 
 def _on_tag_detected(_event: EventDto) -> None:
     """ TagReadEvent.TAG_DETECTED callback. """
-    _fade_out(tuple(int(c / 10) for c in _PRUSA_ORANGE_COMPLEMENTARY), steps=5, delay=0.03)
+    _fade_out(_dim_color(_PRUSA_ORANGE_COMPLEMENTARY, 10), steps=5, delay=0.03)
 
 
 def _on_error(_event: EventDto) -> None:
@@ -90,18 +92,18 @@ def _on_success(_event: EventDto) -> None:
 
 def _on_block_uploaded(_event: EventDto) -> None:
     """ TagReadEvent.BLOCK_UPLOADED callback. """
-    _faded_color = tuple(int(c / 20) for c in _PRUSA_ORANGE_COMPLEMENTARY)
+    _faded_color = _dim_color(_PRUSA_ORANGE_COMPLEMENTARY, 20)
     _block = _event.data.get("block", 0)
     _blocks = _event.data.get("blocks", 1)
     _percent = (_block / _blocks) if _blocks else 0
-    _fade_out(tuple(int(c * _percent) for c in _faded_color), steps=5, delay=0.03)
+    _r, _g, _b = _faded_color
+    _scaled_color = (_r * _percent, _g * _percent, _b * _percent)
+    _fade_out(_scaled_color, steps=5, delay=0.03)
 
 
 def _on_searching_read(_event: EventDto) -> None:
     """ TagReadEvent.SEARCHING_READ callback. """
-    _fade_out(
-        tuple(int(c / 30) for c in _SUCCESS_COLOR), steps=5, delay=0.01
-    )
+    _fade_out(_dim_color(_SUCCESS_COLOR, 30), steps=5, delay=0.01)
 
 def _on_searching_write(_event: EventDto) -> None:
     """ TagReadEvent.SEARCHING_WRITE callback. """

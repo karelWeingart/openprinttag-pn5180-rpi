@@ -32,7 +32,7 @@ class MQTTPublisher:
             self.client.connect(broker, port, 60)
             self.client.loop_start()
         except Exception:
-            self.client = None
+            logging.error(f"Failed to connect to MQTT broker at {broker}:{port}")
 
     def _publish_tag(self, tag: OpenPrintTagMain) -> None:
         """Publish tag information to MQTT topic in URL-encoded form data format with retain flag.
@@ -54,10 +54,8 @@ class MQTTPublisher:
 
     def on_success(self, event: EventDto) -> None:
         """Callback for successful tag read."""
-        tag_info: Optional[OpenPrintTagMain] = event.data.get("tag_info")
-        if tag_info:
+        if event.data and (tag_info := event.data.get("tag_info")):
             self._publish_tag(tag_info)
-
 
 def setup_mqtt_publisher(
     broker: str = "localhost", port: int = 1883, topic: str = "rfid/tag"

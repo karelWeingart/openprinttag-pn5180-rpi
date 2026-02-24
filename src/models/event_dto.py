@@ -6,4 +6,4 @@ from typing import Optional, Any
 
 class EventDto(BaseModel):
     event_type: TagReadEventType
-    data: Optional[dict[str, Any]] = None
+    data: dict[str, Any] = {}

@@ -38,3 +38,8 @@ fallback_version = "0.0.0"
 [tool.mypy]
 mypy_path = "src"
 explicit_package_bases = true
+
+[[tool.mypy.overrides]]
+module = "pn5180.*"
+ignore_missing_imports = true
+follow_untyped_imports = true
