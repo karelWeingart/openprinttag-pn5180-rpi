@@ -1,6 +1,7 @@
-""" main region of openprinttag data. 
+"""main region of openprinttag data.
 now not all attributes are parsed.
 """
+
 from typing import Optional
 from datetime import datetime, timezone
 from pydantic import BaseModel, Field, ConfigDict, model_validator
@@ -122,7 +123,7 @@ class OpenPrintTagMain(BaseModel):
         data["material_type"] = self.material_type
         data["primary_color"] = self.primary_color_hex
         data["manufactured_date"] = self.manufactured_date
-        
+
         return data
 
     @property
@@ -143,7 +144,7 @@ class OpenPrintTagMain(BaseModel):
         if self.instance_uuid and isinstance(self.instance_uuid, bytes):
             return self.instance_uuid.hex()
         return None
-    
+
     def get_human_readable_color(self) -> Optional[str]:
         """Get human-readable color name"""
         hex_color = self.primary_color_hex

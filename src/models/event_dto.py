@@ -1,9 +1,10 @@
-""" EventDto - used for transfer data from event trigers to callbacks. """
+"""EventDto - used for transfer data from event trigers to callbacks."""
+
 from pydantic import BaseModel
 from common.enum import TagReadEventType
-from typing import Optional, Any
+from typing import Any
 
 
 class EventDto(BaseModel):
     event_type: TagReadEventType
-    data: Optional[dict[str, Any]] = None
+    data: dict[str, Any] = {}

@@ -1,7 +1,6 @@
 """Simple MQTT publisher for tag information."""
 
 import logging
-from typing import Optional
 import paho.mqtt.client as mqtt
 
 from models.openprinttag_main import OpenPrintTagMain
@@ -14,10 +13,7 @@ class MQTTPublisher:
     """Publishes tag information via MQTT."""
 
     def __init__(
-        self, 
-        broker: str = "localhost",
-        port: int = 1883, 
-        topic: str = "rfid/tag"
+        self, broker: str = "localhost", port: int = 1883, topic: str = "rfid/tag"
     ):
         """
         Initialize MQTT publisher.
@@ -32,7 +28,7 @@ class MQTTPublisher:
             self.client.connect(broker, port, 60)
             self.client.loop_start()
         except Exception:
-            self.client = None
+            logging.error(f"Failed to connect to MQTT broker at {broker}:{port}")
 
     def _publish_tag(self, tag: OpenPrintTagMain) -> None:
         """Publish tag information to MQTT topic in URL-encoded form data format with retain flag.
@@ -40,22 +36,25 @@ class MQTTPublisher:
         """
 
         data = {
-                "Material": tag.material_name or tag.material_abbreviation,
-                "Manufacturer": tag.manufacturer or 'Unknown',
-                "Color": tag.get_human_readable_color() or tag.primary_color_hex or 'Unknown',
-                "Max/Min Temp": f"{tag.min_print_temperature or '-'}/{tag.max_print_temperature or '-'}",
-            }
+            "Material": tag.material_name or tag.material_abbreviation,
+            "Manufacturer": tag.manufacturer or "Unknown",
+            "Color": tag.get_human_readable_color()
+            or tag.primary_color_hex
+            or "Unknown",
+            "Max/Min Temp": f"{tag.min_print_temperature or '-'}/{tag.max_print_temperature or '-'}",
+        }
 
         try:
-            _body = "&".join(f"{k}={'' if v is None else str(v)}" for k, v in data.items())
+            _body = "&".join(
+                f"{k}={'' if v is None else str(v)}" for k, v in data.items()
+            )
             _ = self.client.publish(self.topic, _body, retain=True)
         except Exception as e:
             logging.error(f"MQTT publish failed: {e}")
 
     def on_success(self, event: EventDto) -> None:
         """Callback for successful tag read."""
-        tag_info: Optional[OpenPrintTagMain] = event.data.get("tag_info")
-        if tag_info:
+        if event.data and (tag_info := event.data.get("tag_info")):
             self._publish_tag(tag_info)
 
 

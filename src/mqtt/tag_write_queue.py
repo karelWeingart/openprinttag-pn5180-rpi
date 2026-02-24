@@ -1,4 +1,5 @@
 """Write queue for receiving bin files via MQTT to write to tags."""
+
 from queue import Queue, Empty
 import logging
 
@@ -17,36 +18,34 @@ def _on_write_data(payload: bytes) -> None:
 
 
 def setup_write_queue(
-    broker: str = "localhost",
-    port: int = 1883,
-    topic: str = "openprinttag/write"
+    broker: str = "localhost", port: int = 1883, topic: str = "openprinttag/write"
 ) -> bool:
     """Setup MQTT subscriber for the write queue.
-    
+
     Args:
         broker: MQTT broker address.
         port: MQTT broker port.
         topic: MQTT topic to subscribe for write commands.
-    
+
     Returns:
         True if setup succeeded, False otherwise.
     """
     global _subscriber  # pylint: disable=global-statement
-    
+
     _subscriber = MQTTSubscriber(broker, port)
     _subscriber.subscribe(topic, _on_write_data)
-    
+
     if _subscriber.connect():
         logging.info("Write queue listening on: %s", topic)
         return True
-    
+
     _subscriber = None
     return False
 
 
 def get_openprinttag_bin() -> bytes | None:
     """Get pending write data from queue if available (thread-safe).
-    
+
     Returns:
         Write data bytes or None if queue is empty.
     """

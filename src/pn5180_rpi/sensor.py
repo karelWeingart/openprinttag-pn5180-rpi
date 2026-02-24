@@ -9,11 +9,14 @@ from pn5180.definitions import CMD_SEND_DATA
 class PreCommandError(Exception):
     """Custom exception for pre-command setup errors."""
 
+
 class PostCommandError(Exception):
     """Custom exception for post-command cleanup errors."""
 
+
 class CommandError(Exception):
-    """ Custom exception for any command."""
+    """Custom exception for any command."""
+
 
 class ExtendedISO15693Sensor(ISO15693Sensor):
     """
@@ -55,19 +58,19 @@ class ExtendedISO15693Sensor(ISO15693Sensor):
         except Exception as e:
             raise PostCommandError(f"Error in post-command setup: {e}") from e
 
-    def __command(self, frame: bytearray, pre_command: bool = True) -> bytes | None:
-        """ sends PN5180 command and waits for data. """
+    def __command(self, frame: bytearray, pre_command: bool = True) -> bytes:
+        """sends PN5180 command and waits for data."""
         if pre_command:
             self.__pre_command()
 
         try:
-            self._write(frame)
+            self._write(frame)  # type: ignore[arg-type]
 
             time.sleep(self._READ_WAIT_TIME)
 
             _response: bytearray | None = self.__get_response_data()
 
-            return bytes(_response) if _response else None
+            return bytes(_response) if _response else b""
         except Exception as e:
             raise CommandError(f"Error getting data for a command: {e}") from e
         finally:
@@ -86,7 +89,7 @@ class ExtendedISO15693Sensor(ISO15693Sensor):
             return None
 
         self._read_data_cmd()
-        _response: bytearray = self._read(_response_length)
+        _response: bytearray = self._read(_response_length)  # type: ignore[assignment]
 
         _response_flags = _response[0]
         if _response_flags & 0x01:
@@ -94,7 +97,7 @@ class ExtendedISO15693Sensor(ISO15693Sensor):
             raise RuntimeError("Tag returned error response")
         return _response
 
-    def get_system_info(self) -> bytes | None:
+    def get_system_info(self) -> bytes:
         """
         Get system information from an ISO15693 tag.
 
@@ -117,7 +120,9 @@ class ExtendedISO15693Sensor(ISO15693Sensor):
             return bytes(_data[1:])
         return None
 
-    def write_single_block(self, block: int, data: bytes, pre_command: bool = True) -> bool:
+    def write_single_block(
+        self, block: int, data: bytes, pre_command: bool = True
+    ) -> bool:
         """
         Write a single ISO15693 block.
         Args:
@@ -132,8 +137,10 @@ class ExtendedISO15693Sensor(ISO15693Sensor):
         response = self.__command(frame, pre_command=pre_command)
         return response is not None
 
-    def write_multi_blocks(self, data: bytes, block_size: int = _DEFAULT_BLOCK_SIZE) -> bool:
-        """ Writes data block by block to the tag.
+    def write_multi_blocks(
+        self, data: bytes, block_size: int = _DEFAULT_BLOCK_SIZE
+    ) -> bool:
+        """Writes data block by block to the tag.
         Data is split into chunks of block_size bytes.
         Simple timeout is implemented - if a block is not written within
         _BLOCK_WRITE_TIMEOUT, an exception is thrown.
@@ -149,7 +156,7 @@ class ExtendedISO15693Sensor(ISO15693Sensor):
         """
         # Pad data to block_size alignment
         if len(data) % block_size != 0:
-            data = data + b'\x00' * (block_size - len(data) % block_size)
+            data = data + b"\x00" * (block_size - len(data) % block_size)
 
         num_blocks = len(data) // block_size
 
@@ -161,7 +168,9 @@ class ExtendedISO15693Sensor(ISO15693Sensor):
 
                 _written = False
                 while not _written:
-                    _written = self.write_single_block(_block, _chunk, pre_command=False)
+                    _written = self.write_single_block(
+                        _block, _chunk, pre_command=False
+                    )
                     if time.time() - _block_start > self._BLOCK_WRITE_TIMEOUT:
                         break
 
@@ -185,7 +194,7 @@ class ExtendedISO15693Sensor(ISO15693Sensor):
             self.__post_command()
 
     def read_multi_blocks(self, blocks: int) -> bytes:
-        """ Reads block by block iterating each till blocks reached.
+        """Reads block by block iterating each till blocks reached.
         Simple timeout is implemented - if block is not loaded within
         _BLOCK_READ_TIMEOUT exception is thrown and tag must be re-read.
         events for callbacks are registered:
@@ -203,7 +212,7 @@ class ExtendedISO15693Sensor(ISO15693Sensor):
                     _data = self.read_single_block(_block, pre_command=False)
                     if time.time() - _block_start > self._BLOCK_READ_TIMEOUT:
                         break
-                
+
                 if _data is None:
                     raise CommandError(f"Timeout reading block {_block}")
                 _raw += _data
