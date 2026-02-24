@@ -4,7 +4,7 @@ and all callbacks are inited here - so make your main.py
 and register your callbacks..
 """
 
-import pigpio
+import pigpio  # type: ignore[import-untyped]
 import time
 from callbacks.console import register_default_callbacks
 from callbacks.led_neopixel import register_neopixel_callbacks
