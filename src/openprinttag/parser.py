@@ -1,4 +1,5 @@
-""" OpenPrintTag specs parser methods. """
+"""OpenPrintTag specs parser methods."""
+
 from typing import Any, Optional
 import cbor2
 import io
@@ -19,7 +20,11 @@ def decode_openprinttag(
         main = dec.decode()  # second CBOR object
         aux = dec.decode()  # optional
 
-        return OpenPrintTagMeta.model_validate(meta_dict), OpenPrintTagMain.model_validate(main), aux
+        return (
+            OpenPrintTagMeta.model_validate(meta_dict),
+            OpenPrintTagMain.model_validate(main),
+            aux,
+        )
     except Exception as e:
         raise ValueError(f"Failed to decode OpenPrintTag payload: {e}") from e
 
@@ -127,6 +132,7 @@ def parse_openprinttag(
     meta, main, aux = decode_openprinttag(openprint_payload)
 
     return meta, main, aux
+
 
 def parse_system_info(system_info_bytes: bytes) -> Optional[dict[str, Any]]:
     """

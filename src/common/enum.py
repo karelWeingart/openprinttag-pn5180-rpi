@@ -1,6 +1,9 @@
-""" Enums definitions. """
+"""Enums definitions."""
+
 from typing import Literal
 from enum import Enum
+
+
 class TagReadEvent(Enum):
     WELCOME = "welcome"
     SEARCHING_READ = "searching_read"
@@ -15,6 +18,7 @@ class TagReadEvent(Enum):
     SUCCESS_WRITE = "success_write"
     ERROR = "error"
     IDLE = "idle"
+
 
 TagReadEventType = Literal[
     TagReadEvent.WELCOME,

@@ -8,6 +8,7 @@ from typing import Optional
 def __on_tag_detected(event: EventDto) -> None:
     print(f"Tag detected with UID: {event.data.get('uid')}")
 
+
 def __on_success_read(event: EventDto) -> None:
     tag_info: Optional[OpenPrintTagMain] = event.data.get("tag_info")
     if tag_info:
@@ -27,15 +28,19 @@ OpenPrintTag Data
     else:
         print("Failed to read tag information.")
 
+
 def __on_success_write(event: EventDto) -> None:
     print(f"Tag written... {event.data['uid']} - {event.data['bytes']}b")
+
 
 def __on_cache_hit(event: EventDto) -> None:
     print("Returned from cache...")
     __on_success_read(event)
 
+
 def __on_searching_read(event: EventDto) -> None:
     print("Searching for tags to read...", end="\r")
+
 
 def __on_searching_write(event: EventDto) -> None:
     print("Searching for tags to write...", end="\r")
@@ -44,6 +49,7 @@ def __on_searching_write(event: EventDto) -> None:
 def __on_error(event: EventDto) -> None:
     _error = event.data.get("error", "Unknown error")
     print(f"Error reading tag: {_error}")
+
 
 def __on_tag_uid_invalid(event: EventDto) -> None:
     _uid = event.data.get("uid", "Unknown UID")

@@ -1,8 +1,9 @@
-""" mainly for the callbacks -
+"""mainly for the callbacks -
 sensor thread is started in openprinttag.reader.run
 and all callbacks are inited here - so make your main.py
 and register your callbacks..
 """
+
 import pigpio
 import time
 from callbacks.console import register_default_callbacks
