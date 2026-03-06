@@ -63,7 +63,7 @@ jobs:
           cache-dependency-path: openprinttag-web-viewer/package-lock.json
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --legacy-peer-deps
 
       - name: Build
         run: REACT_APP_VERSION=${{ github.ref_name }} npm run build
