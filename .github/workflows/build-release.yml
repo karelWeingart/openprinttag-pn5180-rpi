@@ -35,7 +35,7 @@ jobs:
         uses: astral-sh/setup-uv@v2
       
       - name: Sync dependencies
-        run: uv sync --all-groups
+        run: uv sync --all-packages --all-groups
       
       - name: Build wheel
         run: uv build
