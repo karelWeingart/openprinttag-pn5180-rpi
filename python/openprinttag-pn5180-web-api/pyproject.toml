@@ -1,0 +1,23 @@
+[project]
+name = "openprinttag-pn5180-web-api"
+dynamic = ["version"]
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.133.1",
+    "uvicorn[standard]>=0.41.0",
+    "openprinttag-pn5180-shared",
+    "python-multipart>=0.0.22",
+]
+
+[project.scripts]
+openprinttag_web_backend = "openprinttag_web_api.main_web:start"
+
+[build-system]
+requires = ["setuptools>=45", "wheel", "setuptools-scm>=7"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools_scm]
+write_to = "src/openprinttag_web_api/_version.py"
+fallback_version = "0.0.0"

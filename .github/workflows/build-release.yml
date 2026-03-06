@@ -3,14 +3,18 @@ name: Build and Release
 on:
   push:
     tags:
-      - 'v*'
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+  workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
-  build:
+  build-python-packages:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: python
     
     steps:
       - uses: actions/checkout@v4
@@ -35,6 +39,60 @@ jobs:
       - name: Build wheel
         run: uv build
       
+      - name: Upload Python artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-packages
+          path: python/dist/*
+
+  build-react-app:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: openprinttag-web-viewer
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: openprinttag-web-viewer/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: REACT_APP_VERSION=${{ github.ref_name }} npm run build
+
+      - name: Archive build
+        run: tar -czf ../openprinttag-web-viewer-${{ github.ref_name }}.tar.gz -C build .
+
+      - name: Upload React artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: react-app
+          path: openprinttag-web-viewer-${{ github.ref_name }}.tar.gz
+
+  release:
+    runs-on: ubuntu-latest
+    needs: [build-python-packages, build-react-app]
+
+    steps:
+      - name: Download Python artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: python-packages
+          path: dist/
+
+      - name: Download React artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: react-app
+          path: dist/
+
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
