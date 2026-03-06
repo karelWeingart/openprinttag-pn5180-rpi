@@ -1,0 +1,1 @@
+export { TagCard } from "./TagCard";

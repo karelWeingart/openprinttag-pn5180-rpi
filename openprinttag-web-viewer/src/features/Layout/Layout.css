@@ -1,0 +1,29 @@
+.dark-mode {
+  background-color: var(--bs-dark);
+  color: var(--bs-light);
+  min-height: 100vh;
+}
+
+.dark-mode .navbar {
+  background-color: var(--bs-gray-900) !important;
+}
+
+.dark-mode .navbar-brand,
+.dark-mode .nav-link {
+  color: var(--bs-light) !important;
+}
+
+.dark-mode .card {
+  background-color: var(--bs-gray-800);
+  color: var(--bs-light);
+  border-color: var(--bs-gray-700);
+}
+
+.dark-mode a {
+  color: var(--bs-info);
+}
+
+.dark-mode .btn-primary {
+  background-color: var(--bs-primary);
+  border-color: var(--bs-primary);
+}
