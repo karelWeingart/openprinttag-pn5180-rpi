@@ -6,6 +6,7 @@ from threading import Lock
 import paho.mqtt.client as mqtt
 from openprinttag_shared.common_mqtt.config import MQTT_BROKER, MQTT_PORT
 
+
 class MQTTPublisher:
     """Singleton MQTT publisher — one connection per broker:port pair.
 
@@ -17,16 +18,16 @@ class MQTTPublisher:
     _instances: dict[tuple[str, int], "MQTTPublisher"] = {}
     _lock = Lock()
 
-    def __init__(
-        self, broker: str , port: int, keepalive: int = 60
-    ) -> None:
+    def __init__(self, broker: str, port: int, keepalive: int = 60) -> None:
         self.broker = broker
         self.port = port
         self.keepalive = keepalive
         self._client: mqtt.Client | None = None
 
     @classmethod
-    def get_instance(cls, broker: str = MQTT_BROKER, port: int = MQTT_PORT, keepalive: int = 60) -> "MQTTPublisher":
+    def get_instance(
+        cls, broker: str = MQTT_BROKER, port: int = MQTT_PORT, keepalive: int = 60
+    ) -> "MQTTPublisher":
         """Return the shared publisher for *broker*:*port*, creating it if needed."""
         _key = (broker, port)
         with cls._lock:

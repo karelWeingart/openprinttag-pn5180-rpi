@@ -11,7 +11,10 @@ from openprinttag_rpi.pn5180_rpi.sensor import (
 )
 from openprinttag_rpi.models.event_dto import EventDto
 from openprinttag_rpi.openprinttag.parser import parse_openprinttag, parse_system_info
-from openprinttag_rpi.mqtt.tag_write_queue import get_openprinttag_bin, has_openprinttag_bin
+from openprinttag_rpi.mqtt.tag_write_queue import (
+    get_openprinttag_bin,
+    has_openprinttag_bin,
+)
 import pigpio  # type: ignore[import-untyped]
 import time
 from openprinttag_rpi.common.api import TagReadEvent, get_queue_size, register_event
@@ -230,7 +233,10 @@ def __pn5180_thread(reader: ExtendedISO15693Sensor) -> None:
         if _main:
             __put_cache(_uid, _main)
             register_event(
-                EventDto(event_type=TagReadEvent.SUCCESS_READ, data={"tag_uid": _uid, "tag_info": _main})
+                EventDto(
+                    event_type=TagReadEvent.SUCCESS_READ,
+                    data={"tag_uid": _uid, "tag_info": _main},
+                )
             )
         else:
             register_event(

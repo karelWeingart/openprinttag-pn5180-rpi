@@ -10,7 +10,10 @@ from fastapi.staticfiles import StaticFiles
 from openprinttag_web_api.database import init_db
 from openprinttag_web_api.routes.events import router as events_router
 from openprinttag_web_api.routes.tags import router as tags_router
-from openprinttag_web_api.mqtt.pn5180_events_subscriber import start_subscriber, stop_subscriber
+from openprinttag_web_api.mqtt.pn5180_events_subscriber import (
+    start_subscriber,
+    stop_subscriber,
+)
 
 
 @asynccontextmanager
@@ -42,6 +45,7 @@ app.include_router(tags_router)
 
 # for the react app
 app.mount("/", StaticFiles(directory="static", html=True), name="static")
+
 
 def start():
     uvicorn.run(app, host="0.0.0.0", port=8000, workers=1)

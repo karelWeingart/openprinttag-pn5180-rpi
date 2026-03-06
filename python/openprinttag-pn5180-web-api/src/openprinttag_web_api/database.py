@@ -9,7 +9,7 @@ DB_PATH = Path.home() / ".openprinttag" / "events.db"
 
 
 def init_db() -> None:
-    """ Initialize the database with required tables and indexes. """
+    """Initialize the database with required tables and indexes."""
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     with get_db() as db:
         db.execute("PRAGMA journal_mode=WAL")

@@ -14,10 +14,10 @@ from openprinttag_rpi.mqtt.tag_write_queue import setup_write_queue
 from openprinttag_rpi.openprinttag.reader import run as run_openprinttag_reader
 from openprinttag_rpi.common.api import run as run_callbacks_thread
 from openprinttag_shared.common_mqtt.config import (
-    MQTT_BROKER, 
-    MQTT_PORT, 
-    MQTT_WRITE_QUEUE_TOPIC_NAME
-) 
+    MQTT_BROKER,
+    MQTT_PORT,
+    MQTT_WRITE_QUEUE_TOPIC_NAME,
+)
 
 PIN_RST = 7
 PIN_BUSY = 25
@@ -42,7 +42,9 @@ def __main__():
     register_neopixel_callbacks()
     setup_mqtt_publisher()
     setup_webapi_publisher()
-    setup_write_queue(broker=MQTT_BROKER, port=MQTT_PORT, topic=MQTT_WRITE_QUEUE_TOPIC_NAME)
+    setup_write_queue(
+        broker=MQTT_BROKER, port=MQTT_PORT, topic=MQTT_WRITE_QUEUE_TOPIC_NAME
+    )
     run_callbacks_thread()
     run_openprinttag_reader(pi)
     _stopped = False

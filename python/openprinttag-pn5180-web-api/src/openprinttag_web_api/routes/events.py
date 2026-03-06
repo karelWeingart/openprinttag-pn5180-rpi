@@ -20,8 +20,6 @@ _EVENT_QUERY = """
 """
 
 
-
-
 @router.get("", response_model=EventListResponse)
 def list_events(
     page: int = Query(1, ge=1, description="Page number"),
@@ -70,9 +68,7 @@ def list_events(
 def get_event(event_id: int):
     """Get a single event by ID."""
     with get_db() as _db:
-        _row = _db.execute(
-            f"{_EVENT_QUERY} WHERE e.id = ?", [event_id]
-        ).fetchone()
+        _row = _db.execute(f"{_EVENT_QUERY} WHERE e.id = ?", [event_id]).fetchone()
     if _row is None:
         raise HTTPException(status_code=404, detail="Event not found")
     return EventDetailResponse(**{k: _row[k] for k in _row.keys()})

@@ -1,16 +1,18 @@
 """MQTT publisher for bin files.
-bin files generated at the openprinttag.org portal 
+bin files generated at the openprinttag.org portal
 are published to the MQTT topic "openprinttag/pn5180/bin" for consumption by the pn5180 reader.
 """
 
 import logging
 
 from openprinttag_shared.common_mqtt.publisher import MQTTPublisher
-from openprinttag_shared.common_mqtt.config import ( 
-    MQTT_BROKER, MQTT_PORT, MQTT_WRITE_QUEUE_TOPIC_NAME
-) 
+from openprinttag_shared.common_mqtt.config import (
+    MQTT_BROKER,
+    MQTT_PORT,
+    MQTT_WRITE_QUEUE_TOPIC_NAME,
+)
 
-_bin_file_publisher: MQTTPublisher  = MQTTPublisher.get_instance(MQTT_BROKER, MQTT_PORT)
+_bin_file_publisher: MQTTPublisher = MQTTPublisher.get_instance(MQTT_BROKER, MQTT_PORT)
 
 
 def publish_openprinttag_data(data: str | bytes) -> bool:
@@ -25,4 +27,3 @@ def publish_openprinttag_data(data: str | bytes) -> bool:
     except Exception as e:
         logging.error("Failed to publish bin file to MQTT: %s", e)
         return False
-    

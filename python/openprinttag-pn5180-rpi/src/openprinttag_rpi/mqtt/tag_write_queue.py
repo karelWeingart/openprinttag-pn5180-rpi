@@ -18,9 +18,7 @@ def _on_write_data(payload: bytes) -> None:
         logging.info("OpenPrintTag bin file detected in queue: %d bytes", len(payload))
 
 
-def setup_write_queue(
-    broker, port: int, topic: str
-) -> bool:
+def setup_write_queue(broker, port: int, topic: str) -> bool:
     """Setup MQTT subscriber for the write queue.
 
     Args:

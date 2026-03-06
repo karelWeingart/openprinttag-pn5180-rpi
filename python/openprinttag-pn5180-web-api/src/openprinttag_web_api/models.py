@@ -32,8 +32,9 @@ class TagListResponse(BaseModel):
     page: int
     page_size: int
 
+
 class TagBinResponse(BaseModel):
-    """ Response for bin file upload. """
+    """Response for bin file upload."""
 
     size: int
 

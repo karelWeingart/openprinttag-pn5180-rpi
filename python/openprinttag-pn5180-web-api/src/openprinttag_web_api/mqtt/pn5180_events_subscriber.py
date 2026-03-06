@@ -29,8 +29,8 @@ def _on_event(payload: bytes) -> None:
     if not event_type:
         logging.warning("MQTT event missing event_type, skipping")
         return
-    
-    if event_type not in {"success_read",  "success_write", "error"}:
+
+    if event_type not in {"success_read", "success_write", "error"}:
         logging.warning(f" MQTT event type: {event_type}")
         return
 
