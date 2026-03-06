@@ -16,8 +16,7 @@ from openprinttag_rpi.common.api import run as run_callbacks_thread
 from openprinttag_shared.common_mqtt.config import (
     MQTT_BROKER, 
     MQTT_PORT, 
-    MQTT_WRITE_QUEUE_TOPIC_NAME,
-    MQTT_RFID_TAG_TOPIC_NAME
+    MQTT_WRITE_QUEUE_TOPIC_NAME
 ) 
 
 PIN_RST = 7

@@ -1,9 +1,9 @@
 from openprinttag_rpi.common.api import register_event
 from openprinttag_rpi.common.enum import TagReadEvent
 from openprinttag_rpi.models.event_dto import EventDto
-from pn5180.sensor import ISO15693Sensor
+from pn5180.sensor import ISO15693Sensor  # type: ignore[import-untyped]
 import time
-from pn5180.definitions import CMD_SEND_DATA
+from pn5180.definitions import CMD_SEND_DATA  # type: ignore[import-untyped]
 
 
 class PreCommandError(Exception):

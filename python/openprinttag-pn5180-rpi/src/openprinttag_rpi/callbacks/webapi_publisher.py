@@ -3,7 +3,6 @@
 from openprinttag_shared.common_mqtt.publisher import MQTTPublisher
 from openprinttag_shared.common_mqtt.config import MQTT_BROKER, MQTT_PORT, MQTT_WEB_API_TOPIC_NAME  
 from openprinttag_shared.common_mqtt.models import EventMessage
-from openprinttag_rpi.models.openprinttag_main import OpenPrintTagMain
 from openprinttag_rpi.models.event_dto import EventDto
 from openprinttag_rpi.common.api import register_callback
 from openprinttag_rpi.common.enum import TagReadEvent
@@ -20,7 +19,8 @@ def _on_success_read(event: EventDto) -> None:
             material_type=tag_info.material_type,
             manufacturer=tag_info.manufacturer,
             color=tag_info.primary_color_hex,
-            name=tag_info.material_name
+            name=tag_info.material_name,
+            error=None
         )
         _publisher.publish(MQTT_WEB_API_TOPIC_NAME, _event_message.model_dump_json(), retain=False)
 
@@ -29,7 +29,8 @@ def _on_success_write(event: EventDto) -> None:
     _uid = event.data.get("uid", "") if event.data else ""
     _event_message = EventMessage(
         event_type=TagReadEvent.SUCCESS_WRITE.value,
-        tag_uid=_uid
+        tag_uid=_uid,
+        error=None
     )
     _publisher.publish(MQTT_WEB_API_TOPIC_NAME, _event_message.model_dump_json(), retain=False)
 

@@ -1,6 +1,5 @@
 """Tag routes."""
 
-from typing import Optional
 
 from fastapi import APIRouter, HTTPException, Query, UploadFile, File
 

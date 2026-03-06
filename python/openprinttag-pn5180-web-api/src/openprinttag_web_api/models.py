@@ -62,7 +62,7 @@ class EventDetailResponse(EventResponse):
 class EventListResponse(BaseModel):
     """Paginated list of events."""
 
-    events: list[EventResponse]
+    events: list[EventDetailResponse]
     total: int
     total_pages: int
     page: int

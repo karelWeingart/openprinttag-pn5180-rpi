@@ -6,7 +6,6 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
 
 from openprinttag_web_api.database import init_db
 from openprinttag_web_api.routes.events import router as events_router

@@ -3,7 +3,6 @@ bin files generated at the openprinttag.org portal
 are published to the MQTT topic "openprinttag/pn5180/bin" for consumption by the pn5180 reader.
 """
 
-import json
 import logging
 
 from openprinttag_shared.common_mqtt.publisher import MQTTPublisher
@@ -14,7 +13,7 @@ from openprinttag_shared.common_mqtt.config import (
 _bin_file_publisher: MQTTPublisher  = MQTTPublisher.get_instance(MQTT_BROKER, MQTT_PORT)
 
 
-def publish_openprinttag_data(data: str) -> bool:
+def publish_openprinttag_data(data: str | bytes) -> bool:
     """Publish a bin file to the MQTT topic for the pn5180 reader.
 
     Args:
