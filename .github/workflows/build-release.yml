@@ -38,13 +38,13 @@ jobs:
         run: uv sync --all-packages --all-groups
       
       - name: Build wheel
-        run: uv build
+        run: uv build --all-packages
       
       - name: Upload Python artifacts
         uses: actions/upload-artifact@v4
         with:
           name: python-packages
-          path: python/dist/*
+          path: python/dist/*.*
 
   build-react-app:
     runs-on: ubuntu-latest
@@ -94,6 +94,9 @@ jobs:
         with:
           name: react-app
           path: dist/
+
+      - name: List release artifacts
+        run: ls -laR dist/
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
