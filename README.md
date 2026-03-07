@@ -80,17 +80,27 @@ These callbacks are implemented and may be used out of box
 - **git**: cloning the repository
 - **pigpio daemon**: For GPIO hardware access
 - **SPI interface**: Enabled on Raspberry Pi
-- **MQTT Broker**: needed for writing openprinttag data into tags. 
+- **MQTT Broker**: needed for writing openprinttag data into tags.
+- **tmux**: needed for running the openprinttag scanner. 
 
 ### System Setup
 
-1. **Enable SPI Interface**:
+1. **User Permissions**   
+   The user running the application needs access to GPIO and SPI hardware. Either:
+   - Run as `root` (required for NeoPixel LED), or
+   - Add your user to the required groups:
+     ```bash
+     sudo usermod -aG gpio,spi $USER
+     ```
+   - Log out and back in for group changes to take effect
+
+2. **Enable SPI Interface**:
    ```bash
    sudo raspi-config
    # Navigate to: Interface Options → SPI → Enable
    ```
 
-2. **Install pigpio**:
+3. **Install pigpio**:
    ```bash
    sudo apt-get update
    sudo apt-get install pigpio
@@ -98,26 +108,46 @@ These callbacks are implemented and may be used out of box
    sudo systemctl start pigpiod
    ```
 
-3. **Verify pigpio is Running**:
+4. **Verify pigpio is Running**:
    ```bash
    ps aux | grep pigpiod
    ```
 
-4. **Install MQTT Broker**:
+5. **Install MQTT Broker**:
    ```bash
    sudo apt-get install mosquitto mosquitto-clients
+   echo "listener 9001" | sudo tee /etc/mosquitto/conf.d/websockets.conf
+   echo "protocol websockets" | sudo tee -a /etc/mosquitto/conf.d/websockets.conf
+   echo "allow_anonymous true" | sudo tee -a /etc/mosquitto/conf.d/websockets.conf
    sudo systemctl enable mosquitto
    sudo systemctl start mosquitto
+   ```
+6. **Install tmux**
+   ```bash
+   sudo apt-get install tmux
    ```
 
 ## Installation
 
-1. **Install the package by pip**:
+1. **Install the package by the install.sh script**
+There is install script prepared and its the simplest way to get the whole suite installed on your Raspberry Pi.
+- It runs checks for all the components needed (tmux, mosquitto..).
+- Latest packages are downloaded and installed.
+- React artifact is downloaded and unpacked into `$HOME/openprinttag/static` directory.
+- Both web application and the scanner are started.
    ```bash
-   # Get the latest release and install it
-   LATEST_RELEASE=$(curl -s https://api.github.com/repos/karelWeingart/openprinttag-pn5180-rpi/releases/latest | grep -o '"tag_name": "[^"]*' | cut -d'"' -f4)
-   sudo pip install https://github.com/karelWeingart/openprinttag-pn5180-rpi/releases/download/${LATEST_RELEASE}/openprinttag_pn5180_rpi-${LATEST_RELEASE#v}-py3-none-any.whl --break-system-packages --force-reinstall
+   cd $HOME
+
+   curl -LO https://github.com/karelWeingart/openprinttag-pn5180-rpi/blob/main/install.sh
+   chmod +x install.sh
+   ./install.sh
    ```
+
+2. **Manual installation of every component**
+   - Download each .whl for given release and install it using pip.
+   *Note: shared package must be installed first and for all the applications.*
+   - For React static sources download the tar.gz and unzip it into static directory located in directory from which you run the webapplication.
+
 
 ## Usage
 
