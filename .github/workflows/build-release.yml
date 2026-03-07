@@ -38,7 +38,9 @@ jobs:
         run: uv sync --all-packages --all-groups
       
       - name: Build wheel
-        run: uv build --all-packages
+        run: |
+          VERSION=${GITHUB_REF_NAME#v}
+          SETUPTOOLS_SCM_PRETEND_VERSION=$VERSION uv build --all-packages
       
       - name: Upload Python artifacts
         uses: actions/upload-artifact@v4

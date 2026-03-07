@@ -6,14 +6,10 @@ requires-python = ">=3.11"
 
 [tool.uv.workspace]
 members = [
-    "openprinttag-pn5180-rpi",
-    "openprinttag-pn5180-web-api",
-    "openprinttag-pn5180-shared",
+    "openprinttag-pn5180-*"
 ]
 
 [tool.uv.sources]
-openprinttag-pn5180-rpi = { workspace = true }
-openprinttag-pn5180-web-api = { workspace = true }
 openprinttag-pn5180-shared = { workspace = true }
 
 [dependency-groups]
