@@ -13,5 +13,4 @@ requires = ["setuptools>=45", "wheel", "setuptools-scm>=7"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools_scm]
-write_to = "src/openprinttag_shared/_version.py"
 fallback_version = "0.0.0"
