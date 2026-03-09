@@ -8,46 +8,40 @@ from openprinttag_shared.common_mqtt.config import (
 )
 from openprinttag_shared.common_mqtt.models import EventMessage
 from openprinttag_rpi.models.event_dto import EventDto
+from openprinttag_shared.models.dto import TagDto, ErrorDto
 from openprinttag_rpi.common.api import register_callback
-from openprinttag_rpi.common.enum import TagReadEvent
+from openprinttag_rpi.common.enum import TagReadEvent, TagReadEventType
 
 
 _publisher = MQTTPublisher.get_instance(MQTT_BROKER, MQTT_PORT)
 
-
-def _on_success_read(event: EventDto) -> None:
-    """Callback for successful tag read."""
+def _publish_event(event: EventDto, event_type: TagReadEventType) -> None:
+    """Publish event information to MQTT topic in JSON format with retain flag."""
     if event.data and (tag_info := event.data.get("tag_info")):
         _event_message = EventMessage(
-            event_type=TagReadEvent.SUCCESS_READ.value,
-            tag_uid=event.data.get("tag_uid", ""),
-            material_type=tag_info.material_type,
-            manufacturer=tag_info.manufacturer,
-            color=tag_info.primary_color_hex,
-            name=tag_info.material_name,
+            event_type=event_type.value,
+            tag=tag_info,
             error=None,
         )
         _publisher.publish(
             MQTT_WEB_API_TOPIC_NAME, _event_message.model_dump_json(), retain=False
         )
 
+def _on_success_read(event: EventDto) -> None:
+    """Callback for successful tag read."""
+    _publish_event(event, TagReadEvent.SUCCESS_READ)
+
 
 def _on_success_write(event: EventDto) -> None:
     """Callback for successful tag write."""
-    _uid = event.data.get("uid", "") if event.data else ""
-    _event_message = EventMessage(
-        event_type=TagReadEvent.SUCCESS_WRITE.value, tag_uid=_uid, error=None
-    )
-    _publisher.publish(
-        MQTT_WEB_API_TOPIC_NAME, _event_message.model_dump_json(), retain=False
-    )
+    _publish_event(event, TagReadEvent.SUCCESS_WRITE)
 
 
 def _on_error(event: EventDto) -> None:
     """Callback for tag read/write error."""
     error_message = event.data.get("error", "") if event.data else "Unknown error"
     _event_message = EventMessage(
-        event_type=TagReadEvent.ERROR.value, error=error_message
+        event_type=TagReadEvent.ERROR.value, error=ErrorDto(error=error_message)
     )
     _publisher.publish(
         MQTT_WEB_API_TOPIC_NAME, _event_message.model_dump_json(), retain=False

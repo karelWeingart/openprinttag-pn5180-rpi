@@ -17,11 +17,10 @@ def init_db() -> None:
         db.execute(
             """
             CREATE TABLE IF NOT EXISTS tags (
-                tag_uid TEXT PRIMARY KEY,
-                material_type TEXT,
-                manufacturer TEXT,
-                color TEXT,
-                name TEXT
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                tag_uid TEXT NOT NULL,
+                data TEXT NOT NULL,
+                UNIQUE(tag_uid, data)
             )
             """
         )
@@ -31,9 +30,9 @@ def init_db() -> None:
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 event_type TEXT NOT NULL,
                 timestamp TEXT NOT NULL DEFAULT (datetime('now')),
-                tag_uid TEXT,
+                tag_id INTEGER,
                 success INTEGER NOT NULL DEFAULT 1,
-                FOREIGN KEY (tag_uid) REFERENCES tags (tag_uid)
+                FOREIGN KEY (tag_id) REFERENCES tags (id)
             )
             """
         )
@@ -49,7 +48,12 @@ def init_db() -> None:
         )
         db.execute(
             """
-            CREATE INDEX IF NOT EXISTS idx_events_tag_uid ON events (tag_uid)
+            CREATE INDEX IF NOT EXISTS idx_events_tag_id ON events (tag_id)
+            """
+        )
+        db.execute(
+            """
+            CREATE INDEX IF NOT EXISTS idx_tags_tag_uid ON tags (tag_uid)
             """
         )
         db.commit()

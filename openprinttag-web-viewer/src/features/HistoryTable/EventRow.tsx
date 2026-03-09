@@ -1,4 +1,5 @@
 import { TagCard } from "../TagCard";
+import { TagData } from "../../types";
 import { EventItem } from "./useHistoryTable";
 
 interface EventRowProps {
@@ -24,9 +25,9 @@ export function EventRow({ event, isExpanded, onToggle }: EventRowProps) {
         <tr className="table-secondary">
           <td></td>
           <td colSpan={1}>
-            {event.tag_uid ? (
+            {event.tag_data ? (
               <span>
-                <TagCard tagUid={event.tag_uid} />
+                <TagCard tag={JSON.parse(event.tag_data) as TagData} />
               </span>
             ) : (
               <em>No tag associated with this event</em>

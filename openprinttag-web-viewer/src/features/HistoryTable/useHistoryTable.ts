@@ -8,6 +8,7 @@ export interface EventItem {
   timestamp: string;
   tag_uid: string | null;
   success: boolean;
+  tag_data: string | null;
 }
 
 interface EventListResponse {

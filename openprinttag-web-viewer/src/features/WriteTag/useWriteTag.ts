@@ -1,16 +1,19 @@
 import { useState, ChangeEvent, FormEvent, RefObject } from "react";
+import { TagData } from "../../types";
 
 export interface WriteTagState {
   file: File | null;
   uploadStatus: "idle" | "uploading" | "success" | "error";
   handleFileChange: (e: ChangeEvent<HTMLInputElement>) => void;
   handleSubmit: (e: FormEvent) => void;
+  handleCancel: () => void;
+  tagData: TagData | null;
 }
 
 export function useWriteTag(formRef: RefObject<HTMLFormElement | null>): WriteTagState {
   const [file, setFile] = useState<File | null>(null);
   const [uploadStatus, setUploadStatus] = useState<"idle" | "uploading" | "success" | "error">("idle");
-
+  const [tagData, setTagData] = useState<TagData | null>(null);
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const selected = e.target.files?.[0] ?? null;
     if (selected && !selected.name.endsWith(".bin")) {
@@ -20,7 +23,27 @@ export function useWriteTag(formRef: RefObject<HTMLFormElement | null>): WriteTa
       return;
     }
     setFile(selected);
+    setUploadStatus("idle");
   };
+
+  const handleCancel = async () => {
+    try {
+      const res = await fetch("/tags/bin", {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      setFile(null);
+      setUploadStatus("idle");
+      setTagData(null);
+      formRef.current?.reset();
+    } catch (err) {
+      setFile(null);
+      setUploadStatus("idle");
+      setTagData(null);
+      formRef.current?.reset();
+    }    
+  }
+
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -40,6 +63,7 @@ export function useWriteTag(formRef: RefObject<HTMLFormElement | null>): WriteTa
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       setFile(null);
       setUploadStatus("success");
+      setTagData((await res.json()).data as TagData);
       formRef.current?.reset();
     } catch (err) {
       console.error("Upload failed:", err);
@@ -48,5 +72,5 @@ export function useWriteTag(formRef: RefObject<HTMLFormElement | null>): WriteTa
     } 
   };
 
-  return { file, uploadStatus, handleFileChange, handleSubmit };
+  return { file, uploadStatus, handleFileChange, handleSubmit, tagData, handleCancel };
 }

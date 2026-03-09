@@ -1,11 +1,13 @@
 import { useRef } from "react";
 import { useWriteTag } from "./useWriteTag";
+import { TagCard } from "../TagCard";
 
 export function WriteTag() {
   const formRef = useRef<HTMLFormElement>(null);
-  const { file, uploadStatus, handleFileChange, handleSubmit } = useWriteTag(formRef);
+  const { file, uploadStatus, handleFileChange, handleSubmit, tagData, handleCancel } = useWriteTag(formRef);
 
   return (
+    <>
     <form ref={formRef} onSubmit={handleSubmit}>
       <div className="mb-3">
         <label htmlFor="binFile" className="form-label">
@@ -31,6 +33,11 @@ export function WriteTag() {
       <button type="submit" className="btn btn-primary" disabled={!file || uploadStatus === "uploading"}>
         {uploadStatus === "uploading" ? "Uploading…" : "Upload"}
       </button>
+      <button type="button" className="btn btn-secondary" disabled={uploadStatus !== "success"} onClick={handleCancel}>
+        Cancel
+      </button>
     </form>
+    {tagData && <TagCard tag={tagData} />}
+    </>
   );
 }

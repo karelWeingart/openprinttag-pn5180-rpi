@@ -8,7 +8,7 @@ from openprinttag_shared.common_mqtt.config import (
     MQTT_PORT,
     MQTT_RFID_TAG_TOPIC_NAME,
 )
-from openprinttag_rpi.models.openprinttag_main import OpenPrintTagMain
+from openprinttag_shared.models.dto import TagDto
 from openprinttag_rpi.models.event_dto import EventDto
 from openprinttag_rpi.common.api import register_callback
 from openprinttag_rpi.common.enum import TagReadEvent
@@ -17,7 +17,7 @@ from openprinttag_rpi.common.enum import TagReadEvent
 _publisher = MQTTPublisher.get_instance(MQTT_BROKER, MQTT_PORT)
 
 
-def _publish_tag(tag: OpenPrintTagMain) -> None:
+def _publish_tag(tag: TagDto) -> None:
     """Publish tag information to MQTT topic in URL-encoded form data format with retain flag.
     TODO: custom list of fields to be published.
     """
