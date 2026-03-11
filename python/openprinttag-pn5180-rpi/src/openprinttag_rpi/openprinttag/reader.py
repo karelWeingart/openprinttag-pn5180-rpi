@@ -152,7 +152,9 @@ def write_openprinttag(reader: ExtendedISO15693Sensor, uid: str, data: bytes) ->
         EventDto(
             event_type=TagReadEvent.SUCCESS_WRITE,
             data={
-                "tag_info": TagDto.model_construct(**_main.model_dump(), tag_uid=uid) if _main else None
+                "tag_info": TagDto.model_construct(**_main.model_dump(), tag_uid=uid)
+                if _main
+                else None
             },
         )
     )

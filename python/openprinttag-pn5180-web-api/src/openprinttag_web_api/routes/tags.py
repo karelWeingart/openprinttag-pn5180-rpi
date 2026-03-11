@@ -74,7 +74,9 @@ async def delete_tag_bin_file() -> None:
 async def upload_tag_bin_file(file: UploadFile = File(...)) -> TagBinResponse:
     """Upload a binary file containing tag data."""
     _raw_data = await file.read()
-    logging.warning(f"Received bin file upload: {file.filename}... Size: {len(_raw_data)} bytes")
+    logging.warning(
+        f"Received bin file upload: {file.filename}... Size: {len(_raw_data)} bytes"
+    )
     _main: OpenPrintTagMain | None = None
 
     try:

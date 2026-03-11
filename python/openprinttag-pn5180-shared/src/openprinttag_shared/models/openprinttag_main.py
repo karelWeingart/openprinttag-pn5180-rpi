@@ -104,7 +104,6 @@ class OpenPrintTagMain(BaseModel):
         None, validation_alias="38"
     )  # Maximum nozzle temperature
 
-    
     @property
     @computed_field
     def primary_color_hex(self) -> Optional[str]:
