@@ -104,7 +104,8 @@ class OpenPrintTagMain(BaseModel):
         None, validation_alias="38"
     )  # Maximum nozzle temperature
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
+    @property
     def primary_color_hex(self) -> Optional[str]:
         """Get color as hex string (e.g., '#RRGGBB'). Uses the first three bytes of RGB(A)."""
         raw = getattr(self, "primary_color_raw", None)
@@ -118,14 +119,16 @@ class OpenPrintTagMain(BaseModel):
         r, g, b = raw[0], raw[1], raw[2]
         return f"#{r:02X}{g:02X}{b:02X}"
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
+    @property
     def material_class(self) -> str:
         """Return human-readable material class (e.g. 'FFF', 'SLA')"""
         return self._MATERIAL_CLASS_MAP.get(
             self.material_class_raw, f"Unknown({self.material_class_raw})"
         )
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
+    @property
     def material_type(self) -> Optional[str]:
         """Return human-readable material type (e.g. 'PLA', 'PETG', ..., 'Other').
 
@@ -136,7 +139,8 @@ class OpenPrintTagMain(BaseModel):
             return None
         return self._MATERIAL_TYPE_MAP.get(self.material_type_raw, "Other")
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
+    @property
     def manufactured_date(self) -> Optional[str]:
         """Return manufactured date as ISO8601 string (UTC) or None."""
         if self.manufactured_date_raw is None:
@@ -148,7 +152,8 @@ class OpenPrintTagMain(BaseModel):
         except Exception:
             return f"InvalidTimestamp({self.manufactured_date_raw})"
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
+    @property
     def uuid_hex(self) -> Optional[str]:
         """Get UUID as hex string"""
         if self.instance_uuid and isinstance(self.instance_uuid, bytes):
