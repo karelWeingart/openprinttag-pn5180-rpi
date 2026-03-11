@@ -35,9 +35,7 @@ async def list_tags(
             [page_size, offset],
         ).fetchall()
 
-    tags = [
-        TagDto.model_validate_json(row["data"]) for row in rows
-    ]
+    tags = [TagDto.model_validate_json(row["data"]) for row in rows]
 
     return TagListResponse(
         tags=tags,
@@ -63,26 +61,33 @@ async def get_tag(tag_uid: str, event_id: int):
         raise HTTPException(status_code=404, detail="Tag not found")
     return TagDto.model_validate_json(row["data"])
 
+
 @router.delete("/bin")
 async def delete_tag_bin_file() -> None:
     if not publish_openprinttag_data(b"cancel"):
-        raise HTTPException(status_code=500, detail="Failed to cancel bin file writing...")
+        raise HTTPException(
+            status_code=500, detail="Failed to cancel bin file writing..."
+        )
 
 
 @router.post("/bin", response_model=TagBinResponse)
 async def upload_tag_bin_file(file: UploadFile = File(...)) -> TagBinResponse:
     """Upload a binary file containing tag data."""
     _raw_data = await file.read()
-    logging.warning(f"Received bin file upload: {file.filename} ({_raw_data}) bytes)")
-    _main: OpenPrintTagMain = None
-    
+    logging.warning(f"Received bin file upload: {file.filename}... Size: {len(_raw_data)} bytes")
+    _main: OpenPrintTagMain | None = None
+
     try:
         _, _main, _ = parse_openprinttag(_raw_data)
     except ValueError as e:
         logging.error(f"Failed to decode OpenPrintTag data from uploaded file: {e}")
-        raise HTTPException(status_code=400, detail=f"Failed to decode OpenPrintTag data: {e}") from e
+        raise HTTPException(
+            status_code=400, detail=f"Failed to decode OpenPrintTag data: {e}"
+        ) from e
+
     if publish_openprinttag_data(_raw_data):
-        return TagBinResponse(size=len(_raw_data), file_name=file.filename, data=_main)
+        _filename = file.filename if file.filename else "unknown.bin"
+        return TagBinResponse(size=len(_raw_data), file_name=_filename, data=_main)
     else:
         raise HTTPException(
             status_code=500, detail="Failed to publish bin file to MQTT"

@@ -1,7 +1,6 @@
 from openprinttag_rpi.common.api import register_callback
 from openprinttag_rpi.common.enum import TagReadEvent
 from openprinttag_rpi.models.event_dto import EventDto
-from openprinttag_shared.models.openprinttag_main import OpenPrintTagMain
 from openprinttag_shared.models.dto import TagDto
 from typing import Optional
 
@@ -32,7 +31,9 @@ OpenPrintTag Data
 
 def __on_success_write(event: EventDto) -> None:
     tag_info: Optional[TagDto] = event.data.get("tag_info")
-    print(f"Successfully wrote to tag with UID: {tag_info.tag_uid if tag_info else 'Unknown UID'}")
+    print(
+        f"Successfully wrote to tag with UID: {tag_info.tag_uid if tag_info else 'Unknown UID'}"
+    )
     __on_success_read(event)
 
 

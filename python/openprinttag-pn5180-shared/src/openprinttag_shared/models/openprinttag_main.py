@@ -4,7 +4,14 @@ now not all attributes are parsed.
 
 from typing import Optional
 from datetime import datetime, timezone
-from pydantic import BaseModel, Field, ConfigDict, field_serializer, model_validator,computed_field
+from pydantic import (
+    BaseModel,
+    Field,
+    ConfigDict,
+    field_serializer,
+    model_validator,
+    computed_field,
+)
 from openprinttag_shared.utils.conversion import closest_color
 
 
@@ -16,7 +23,13 @@ class OpenPrintTagMain(BaseModel):
 
     model_config = ConfigDict(validate_by_alias=True, validate_by_name=True)
 
-    @field_serializer("instance_uuid", "package_uuid", "material_uuid", "brand_uuid", "primary_color_raw")
+    @field_serializer(
+        "instance_uuid",
+        "package_uuid",
+        "material_uuid",
+        "brand_uuid",
+        "primary_color_raw",
+    )
     @classmethod
     def serialize_bytes_as_hex(cls, value: bytes | None) -> str | None:
         if value is None:
@@ -24,7 +37,7 @@ class OpenPrintTagMain(BaseModel):
         if not isinstance(value, (bytes, bytearray)):
             return value
         return value.hex()
-    
+
     @model_validator(mode="before")
     @classmethod
     def __convert_int_keys_to_str(cls, data):
@@ -92,8 +105,8 @@ class OpenPrintTagMain(BaseModel):
     )  # Maximum nozzle temperature
 
     
-    @computed_field
     @property
+    @computed_field
     def primary_color_hex(self) -> Optional[str]:
         """Get color as hex string (e.g., '#RRGGBB'). Uses the first three bytes of RGB(A)."""
         raw = getattr(self, "primary_color_raw", None)
@@ -107,16 +120,16 @@ class OpenPrintTagMain(BaseModel):
         r, g, b = raw[0], raw[1], raw[2]
         return f"#{r:02X}{g:02X}{b:02X}"
 
-    @computed_field
     @property
+    @computed_field
     def material_class(self) -> str:
         """Return human-readable material class (e.g. 'FFF', 'SLA')"""
         return self._MATERIAL_CLASS_MAP.get(
             self.material_class_raw, f"Unknown({self.material_class_raw})"
         )
 
-    @computed_field
     @property
+    @computed_field
     def material_type(self) -> Optional[str]:
         """Return human-readable material type (e.g. 'PLA', 'PETG', ..., 'Other').
 
@@ -127,9 +140,8 @@ class OpenPrintTagMain(BaseModel):
             return None
         return self._MATERIAL_TYPE_MAP.get(self.material_type_raw, "Other")
 
-
-    @computed_field
     @property
+    @computed_field
     def manufactured_date(self) -> Optional[str]:
         """Return manufactured date as ISO8601 string (UTC) or None."""
         if self.manufactured_date_raw is None:
@@ -141,8 +153,8 @@ class OpenPrintTagMain(BaseModel):
         except Exception:
             return f"InvalidTimestamp({self.manufactured_date_raw})"
 
-    @computed_field
     @property
+    @computed_field
     def uuid_hex(self) -> Optional[str]:
         """Get UUID as hex string"""
         if self.instance_uuid and isinstance(self.instance_uuid, bytes):

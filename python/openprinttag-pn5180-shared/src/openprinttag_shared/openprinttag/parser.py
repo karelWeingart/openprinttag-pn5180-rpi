@@ -1,4 +1,5 @@
-""" Parser for OpenPrintTag payloads. """
+"""Parser for OpenPrintTag payloads."""
+
 import cbor2
 import io
 from openprinttag_shared.models.openprinttag_meta import OpenPrintTagMeta

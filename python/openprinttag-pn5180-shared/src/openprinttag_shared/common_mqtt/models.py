@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from openprinttag_shared.models.dto import TagDto, ErrorDto
 
+
 class EventMessage(BaseModel):
     """Model for the MQTT event message payload.
     This one is used for generating messages sent by the pn5180 reader
@@ -8,5 +9,5 @@ class EventMessage(BaseModel):
     """
 
     event_type: str
-    error: ErrorDto  | None = None
+    error: ErrorDto | None = None
     tag: TagDto | None = None

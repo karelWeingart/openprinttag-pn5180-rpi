@@ -67,7 +67,7 @@ export function useWriteTag(formRef: RefObject<HTMLFormElement | null>): WriteTa
       formRef.current?.reset();
     } catch (err) {
       console.error("Upload failed:", err);
-      alert(`Upload failed: ${err}`);
+      setFile(null);      
       setUploadStatus("error");
     } 
   };

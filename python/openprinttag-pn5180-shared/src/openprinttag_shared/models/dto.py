@@ -7,7 +7,9 @@ class TagDto(OpenPrintTagMain):
 
     tag_uid: str | None = None
 
+
 class ErrorDto(BaseModel):
     """Model for error messages sent by the pn5180 reader."""
+
     error: str
     tag_uid: str | None = None

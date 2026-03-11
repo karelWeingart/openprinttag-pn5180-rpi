@@ -8,12 +8,13 @@ from openprinttag_shared.common_mqtt.config import (
 )
 from openprinttag_shared.common_mqtt.models import EventMessage
 from openprinttag_rpi.models.event_dto import EventDto
-from openprinttag_shared.models.dto import TagDto, ErrorDto
+from openprinttag_shared.models.dto import ErrorDto
 from openprinttag_rpi.common.api import register_callback
 from openprinttag_rpi.common.enum import TagReadEvent, TagReadEventType
 
 
 _publisher = MQTTPublisher.get_instance(MQTT_BROKER, MQTT_PORT)
+
 
 def _publish_event(event: EventDto, event_type: TagReadEventType) -> None:
     """Publish event information to MQTT topic in JSON format with retain flag."""
@@ -26,6 +27,7 @@ def _publish_event(event: EventDto, event_type: TagReadEventType) -> None:
         _publisher.publish(
             MQTT_WEB_API_TOPIC_NAME, _event_message.model_dump_json(), retain=False
         )
+
 
 def _on_success_read(event: EventDto) -> None:
     """Callback for successful tag read."""

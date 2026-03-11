@@ -150,7 +150,10 @@ def write_openprinttag(reader: ExtendedISO15693Sensor, uid: str, data: bytes) ->
     _, _main, _ = parse_openprinttag(data)
     register_event(
         EventDto(
-            event_type=TagReadEvent.SUCCESS_WRITE, data={"tag_info": TagDto.model_construct(**_main.model_dump(), tag_uid=uid)}
+            event_type=TagReadEvent.SUCCESS_WRITE,
+            data={
+                "tag_info": TagDto.model_construct(**_main.model_dump(), tag_uid=uid) if _main else None
+            },
         )
     )
     # For now simple delay added.
@@ -180,11 +183,9 @@ def search_tag(
     _uid: str | None = None
     _searching: bool = True
     while _searching:
-        
         # Escape loop when new bin file detected
         if has_openprinttag_bin():
-            return _uid   
-
+            return _uid
 
         _uid = reader.read_tag()
         if not _uid:
@@ -213,7 +214,7 @@ def __pn5180_thread(reader: ExtendedISO15693Sensor) -> None:
     while True:
         # Check for pending write operations first
         _openprinttag_data: bytes | None = get_openprinttag_bin()
-        
+
         if _openprinttag_data == b"cancel":
             # Cancel write operation
             _openprinttag_data = None
@@ -225,7 +226,7 @@ def __pn5180_thread(reader: ExtendedISO15693Sensor) -> None:
             )
             if not _uid:
                 continue
-            
+
             write_openprinttag(reader, _uid, _openprinttag_data)
             _wait_for_empty_queue()
             continue
@@ -245,7 +246,11 @@ def __pn5180_thread(reader: ExtendedISO15693Sensor) -> None:
             register_event(
                 EventDto(
                     event_type=TagReadEvent.SUCCESS_READ,
-                    data={"tag_info": TagDto.model_construct(**_main.model_dump(), tag_uid=_uid)},
+                    data={
+                        "tag_info": TagDto.model_construct(
+                            **_main.model_dump(), tag_uid=_uid
+                        )
+                    },
                 )
             )
         else:

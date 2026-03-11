@@ -5,7 +5,8 @@ from typing import Optional
 from pydantic import BaseModel
 
 from openprinttag_shared.models.dto import TagDto
-from openprinttag_shared.models.openprinttag_main import OpenPrintTagMain   
+from openprinttag_shared.models.openprinttag_main import OpenPrintTagMain
+
 
 class TagListResponse(BaseModel):
     """Paginated list of tags."""
@@ -21,7 +22,7 @@ class TagBinResponse(BaseModel):
 
     size: int
     file_name: str
-    data: OpenPrintTagMain
+    data: OpenPrintTagMain | None = None
 
 
 class EventResponse(BaseModel):

@@ -2,6 +2,7 @@
 
 from typing import Any, Optional
 
+
 def parse_system_info(system_info_bytes: bytes) -> Optional[dict[str, Any]]:
     """
     Parse the raw system information response from an ISO15693 tag.
