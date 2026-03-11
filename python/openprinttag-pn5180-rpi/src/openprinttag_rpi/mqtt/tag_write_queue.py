@@ -7,7 +7,7 @@ import logging
 from openprinttag_shared.common_mqtt.subscriber import MQTTSubscriber
 
 # Thread-safe write queue for incoming MQTT write commands
-_write_queue: Queue[bytes] = Queue(100)
+_write_queue: Queue[bytes] = Queue(1)
 _subscriber: MQTTSubscriber | None = None
 
 

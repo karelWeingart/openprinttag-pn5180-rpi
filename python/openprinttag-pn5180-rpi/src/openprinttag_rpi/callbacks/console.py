@@ -1,7 +1,7 @@
 from openprinttag_rpi.common.api import register_callback
 from openprinttag_rpi.common.enum import TagReadEvent
 from openprinttag_rpi.models.event_dto import EventDto
-from openprinttag_rpi.models.openprinttag_main import OpenPrintTagMain
+from openprinttag_shared.models.dto import TagDto
 from typing import Optional
 
 
@@ -10,7 +10,7 @@ def __on_tag_detected(event: EventDto) -> None:
 
 
 def __on_success_read(event: EventDto) -> None:
-    tag_info: Optional[OpenPrintTagMain] = event.data.get("tag_info")
+    tag_info: Optional[TagDto] = event.data.get("tag_info")
     if tag_info:
         print(f"""
 OpenPrintTag Data
@@ -30,7 +30,11 @@ OpenPrintTag Data
 
 
 def __on_success_write(event: EventDto) -> None:
-    print(f"Tag written... {event.data['uid']} - {event.data['bytes']}b")
+    tag_info: Optional[TagDto] = event.data.get("tag_info")
+    print(
+        f"Successfully wrote to tag with UID: {tag_info.tag_uid if tag_info else 'Unknown UID'}"
+    )
+    __on_success_read(event)
 
 
 def __on_cache_hit(event: EventDto) -> None:

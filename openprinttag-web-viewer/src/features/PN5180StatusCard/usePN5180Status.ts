@@ -19,7 +19,7 @@ export function usePN5180Status() {
   }
 
   if (lastMessage?.payload.event_type === "success_read") {
-    lastReadWriteMessageRef.current = lastMessage.payload.name ? lastMessage.payload.name + " Filament" : "Unknown Filament";
+    lastReadWriteMessageRef.current = lastMessage.payload.tag?.material_name ? lastMessage.payload.tag.material_name + " Filament" : "Unknown Filament";
   }
 
   if (lastMessage?.payload.event_type === "success_write") {
@@ -27,7 +27,7 @@ export function usePN5180Status() {
   }
 
   if (lastMessage?.payload.event_type === "error") {
-    lastReadWriteMessageRef.current = lastMessage.payload.error ?? "Unknown error";
+    lastReadWriteMessageRef.current = lastMessage.payload.error?.error ?? "Unknown error";
   }
 
   return { isStale, animationKey: animationKeyRef.current, healthColor, lastReadWriteMessage: lastReadWriteMessageRef.current };

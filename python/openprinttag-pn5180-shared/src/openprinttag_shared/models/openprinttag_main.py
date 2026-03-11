@@ -4,8 +4,15 @@ now not all attributes are parsed.
 
 from typing import Optional
 from datetime import datetime, timezone
-from pydantic import BaseModel, Field, ConfigDict, model_validator
-from openprinttag_rpi.utils.conversion import closest_color
+from pydantic import (
+    BaseModel,
+    Field,
+    ConfigDict,
+    field_serializer,
+    model_validator,
+    computed_field,
+)
+from openprinttag_shared.utils.conversion import closest_color
 
 
 class OpenPrintTagMain(BaseModel):
@@ -14,7 +21,22 @@ class OpenPrintTagMain(BaseModel):
     Simplified model with human-readable properties.
     """
 
-    model_config = ConfigDict(arbitrary_types_allowed=True)
+    model_config = ConfigDict(validate_by_alias=True, validate_by_name=True)
+
+    @field_serializer(
+        "instance_uuid",
+        "package_uuid",
+        "material_uuid",
+        "brand_uuid",
+        "primary_color_raw",
+    )
+    @classmethod
+    def serialize_bytes_as_hex(cls, value: bytes | None) -> str | None:
+        if value is None:
+            return None
+        if not isinstance(value, (bytes, bytearray)):
+            return value
+        return value.hex()
 
     @model_validator(mode="before")
     @classmethod
@@ -47,42 +69,43 @@ class OpenPrintTagMain(BaseModel):
     }
 
     # Identification
-    instance_uuid: Optional[bytes] = Field(None, alias="0")
-    package_uuid: Optional[bytes] = Field(None, alias="1")
-    material_uuid: Optional[bytes] = Field(None, alias="2")
-    brand_uuid: Optional[bytes] = Field(None, alias="3")
-    gtin: Optional[int] = Field(None, alias="4")
-    brand_specific_instance_id: Optional[str] = Field(None, alias="5")
+    instance_uuid: Optional[bytes] = Field(None, validation_alias="0")
+    package_uuid: Optional[bytes] = Field(None, validation_alias="1")
+    material_uuid: Optional[bytes] = Field(None, validation_alias="2")
+    brand_uuid: Optional[bytes] = Field(None, validation_alias="3")
+    gtin: Optional[int] = Field(None, validation_alias="4")
+    brand_specific_instance_id: Optional[str] = Field(None, validation_alias="5")
 
     # Material information
-    material_class_raw: int = Field(..., alias="8")
-    material_name: Optional[str] = Field(None, alias="10")
-    manufacturer: Optional[str] = Field(None, alias="11")
-    material_abbreviation: Optional[str] = Field(None, alias="52")
-    material_type_raw: Optional[int] = Field(None, alias="9")
+    material_class_raw: int = Field(..., validation_alias="8")
+    material_name: Optional[str] = Field(None, validation_alias="10")
+    manufacturer: Optional[str] = Field(None, validation_alias="11")
+    material_abbreviation: Optional[str] = Field(None, validation_alias="52")
+    material_type_raw: Optional[int] = Field(None, validation_alias="9")
 
-    manufactured_date_raw: Optional[int] = Field(None, alias="14")
+    manufactured_date_raw: Optional[int] = Field(None, validation_alias="14")
 
     # Dimensions & measurements
-    nominal_netto_full_weight: Optional[int] = Field(None, alias="16")
-    actual_netto_full_weight: Optional[int] = Field(None, alias="17")
-    empty_container_weight: Optional[int] = Field(None, alias="18")
+    nominal_netto_full_weight: Optional[int] = Field(None, validation_alias="16")
+    actual_netto_full_weight: Optional[int] = Field(None, validation_alias="17")
+    empty_container_weight: Optional[int] = Field(None, validation_alias="18")
 
     # Color (3 or 4 bytes RGB(A)) - keep raw bytes internal
-    primary_color_raw: Optional[bytes] = Field(None, alias="19")
+    primary_color_raw: Optional[bytes] = Field(None, validation_alias="19")
 
     # Temperature settings (in Celsius)
-    min_print_temperature: Optional[int] = Field(None, alias="34")
-    max_print_temperature: Optional[int] = Field(None, alias="35")
-    preheat_temperature: Optional[int] = Field(None, alias="36")
+    min_print_temperature: Optional[int] = Field(None, validation_alias="34")
+    max_print_temperature: Optional[int] = Field(None, validation_alias="35")
+    preheat_temperature: Optional[int] = Field(None, validation_alias="36")
     min_bed_temperature: Optional[int] = Field(
-        None, alias="37"
+        None, validation_alias="37"
     )  # Minimum nozzle temperature
     max_bed_temperature: Optional[int] = Field(
-        None, alias="38"
+        None, validation_alias="38"
     )  # Maximum nozzle temperature
 
     @property
+    @computed_field
     def primary_color_hex(self) -> Optional[str]:
         """Get color as hex string (e.g., '#RRGGBB'). Uses the first three bytes of RGB(A)."""
         raw = getattr(self, "primary_color_raw", None)
@@ -97,6 +120,7 @@ class OpenPrintTagMain(BaseModel):
         return f"#{r:02X}{g:02X}{b:02X}"
 
     @property
+    @computed_field
     def material_class(self) -> str:
         """Return human-readable material class (e.g. 'FFF', 'SLA')"""
         return self._MATERIAL_CLASS_MAP.get(
@@ -104,6 +128,7 @@ class OpenPrintTagMain(BaseModel):
         )
 
     @property
+    @computed_field
     def material_type(self) -> Optional[str]:
         """Return human-readable material type (e.g. 'PLA', 'PETG', ..., 'Other').
 
@@ -114,19 +139,8 @@ class OpenPrintTagMain(BaseModel):
             return None
         return self._MATERIAL_TYPE_MAP.get(self.material_type_raw, "Other")
 
-    def model_dump(self, *args, **kwargs):
-        """Customize serialization: hide raw numeric fields and expose mapped string values."""
-        data = super().model_dump(*args, **kwargs)
-
-        # Add computed/mapped values
-        data["material_class"] = self.material_class
-        data["material_type"] = self.material_type
-        data["primary_color"] = self.primary_color_hex
-        data["manufactured_date"] = self.manufactured_date
-
-        return data
-
     @property
+    @computed_field
     def manufactured_date(self) -> Optional[str]:
         """Return manufactured date as ISO8601 string (UTC) or None."""
         if self.manufactured_date_raw is None:
@@ -139,6 +153,7 @@ class OpenPrintTagMain(BaseModel):
             return f"InvalidTimestamp({self.manufactured_date_raw})"
 
     @property
+    @computed_field
     def uuid_hex(self) -> Optional[str]:
         """Get UUID as hex string"""
         if self.instance_uuid and isinstance(self.instance_uuid, bytes):

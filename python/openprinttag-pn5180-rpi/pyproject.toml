@@ -6,10 +6,9 @@ readme = "README.md"
 license = "GPL-3.0"
 requires-python = ">=3.11"
 dependencies = [
-    "cbor2>=5.4.0",
     "pyyaml>=6.0",
     "pn5180pi",
-    "pydantic>=2.0.0",
+    "pydantic==2.12.5",
     "rpi-ws281x>=5.0.0",
     "adafruit-circuitpython-neopixel>=6.3.21",
     "paho-mqtt>=2.1.0",

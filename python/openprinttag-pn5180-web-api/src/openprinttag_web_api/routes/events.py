@@ -15,8 +15,10 @@ _EVENT_QUERY = """
         e.timestamp, 
         e.event_type, 
         e.success,
-        e.tag_uid
+        t.tag_uid,
+        t.data AS tag_data
     FROM events e
+    LEFT JOIN tags t ON t.id = e.tag_id
 """
 
 

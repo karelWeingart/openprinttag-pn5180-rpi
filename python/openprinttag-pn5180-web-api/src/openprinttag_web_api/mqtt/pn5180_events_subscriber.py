@@ -34,36 +34,34 @@ def _on_event(payload: bytes) -> None:
         logging.warning(f" MQTT event type: {event_type}")
         return
 
-    tag_uid: str | None = event_message.tag_uid
+    tag = event_message.tag
+    tag_uid: str | None = tag.tag_uid if tag else None
     success = 0 if event_type == "error" else 1
 
     try:
         with get_db() as db:
-            # Upsert tag if tag info is present
-            if tag_uid:
+            tag_id: int | None = None
+
+            # Insert tag if tag info is present (dedup by uid + data)
+            if tag:
+                tag_data = tag.model_dump_json()
                 db.execute(
                     """
-                    INSERT INTO tags (tag_uid, material_type, manufacturer, name, color)
-                    VALUES (?, ?, ?, ?, ?)
-                    ON CONFLICT(tag_uid) DO UPDATE SET
-                        material_type   = excluded.material_type,
-                        manufacturer = excluded.manufacturer,
-                        name      = excluded.name,
-                        color      = excluded.color
+                    INSERT OR IGNORE INTO tags (tag_uid, data)
+                    VALUES (?, ?)
                     """,
-                    (
-                        tag_uid,
-                        event_message.material_type,
-                        event_message.manufacturer,
-                        event_message.name,
-                        event_message.color,
-                    ),
+                    (tag_uid, tag_data),
                 )
+                row = db.execute(
+                    "SELECT id FROM tags WHERE tag_uid = ? AND data = ?",
+                    (tag_uid, tag_data),
+                ).fetchone()
+                tag_id = row[0] if row else None
 
             # Insert event
             db.execute(
-                "INSERT INTO events (event_type, tag_uid, success) VALUES (?, ?, ?)",
-                (event_type, tag_uid, success),
+                "INSERT INTO events (event_type, tag_id, success) VALUES (?, ?, ?)",
+                (event_type, tag_id, success),
             )
             db.commit()
 

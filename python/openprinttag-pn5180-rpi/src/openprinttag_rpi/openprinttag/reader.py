@@ -10,7 +10,9 @@ from openprinttag_rpi.pn5180_rpi.sensor import (
     PreCommandError,
 )
 from openprinttag_rpi.models.event_dto import EventDto
-from openprinttag_rpi.openprinttag.parser import parse_openprinttag, parse_system_info
+from openprinttag_shared.models.dto import TagDto
+from openprinttag_shared.openprinttag.parser import parse_openprinttag
+from openprinttag_rpi.openprinttag.parser import parse_system_info
 from openprinttag_rpi.mqtt.tag_write_queue import (
     get_openprinttag_bin,
     has_openprinttag_bin,
@@ -18,7 +20,7 @@ from openprinttag_rpi.mqtt.tag_write_queue import (
 import pigpio  # type: ignore[import-untyped]
 import time
 from openprinttag_rpi.common.api import TagReadEvent, get_queue_size, register_event
-from openprinttag_rpi.models.openprinttag_main import OpenPrintTagMain
+from openprinttag_shared.models.openprinttag_main import OpenPrintTagMain
 
 _SEARCHING_DELAY = 0.1
 _SEARCHING_READ_EVENT_INTERVAL = 5.0
@@ -145,9 +147,15 @@ def write_openprinttag(reader: ExtendedISO15693Sensor, uid: str, data: bytes) ->
 
     # Invalidate cache if key exists
     _ = __in_cache(uid, force_delete=True)
+    _, _main, _ = parse_openprinttag(data)
     register_event(
         EventDto(
-            event_type=TagReadEvent.SUCCESS_WRITE, data={"uid": uid, "bytes": len(data)}
+            event_type=TagReadEvent.SUCCESS_WRITE,
+            data={
+                "tag_info": TagDto.model_construct(**_main.model_dump(), tag_uid=uid)
+                if _main
+                else None
+            },
         )
     )
     # For now simple delay added.
@@ -177,8 +185,8 @@ def search_tag(
     _uid: str | None = None
     _searching: bool = True
     while _searching:
-        # Switching pn5180 mode to write.
-        if search_type == TagReadEvent.SEARCHING_READ and has_openprinttag_bin():
+        # Escape loop when new bin file detected
+        if has_openprinttag_bin():
             return _uid
 
         _uid = reader.read_tag()
@@ -209,6 +217,10 @@ def __pn5180_thread(reader: ExtendedISO15693Sensor) -> None:
         # Check for pending write operations first
         _openprinttag_data: bytes | None = get_openprinttag_bin()
 
+        if _openprinttag_data == b"cancel":
+            # Cancel write operation
+            _openprinttag_data = None
+
         # Write mode
         if _openprinttag_data:
             _uid = search_tag(
@@ -216,6 +228,7 @@ def __pn5180_thread(reader: ExtendedISO15693Sensor) -> None:
             )
             if not _uid:
                 continue
+
             write_openprinttag(reader, _uid, _openprinttag_data)
             _wait_for_empty_queue()
             continue
@@ -235,7 +248,11 @@ def __pn5180_thread(reader: ExtendedISO15693Sensor) -> None:
             register_event(
                 EventDto(
                     event_type=TagReadEvent.SUCCESS_READ,
-                    data={"tag_uid": _uid, "tag_info": _main},
+                    data={
+                        "tag_info": TagDto.model_construct(
+                            **_main.model_dump(), tag_uid=_uid
+                        )
+                    },
                 )
             )
         else:
