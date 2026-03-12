@@ -12,7 +12,6 @@ from openprinttag_rpi.pn5180_rpi.sensor import (
 from openprinttag_rpi.models.event_dto import EventDto
 from openprinttag_shared.models.dto import TagDto
 from openprinttag_shared.openprinttag.parser import parse_openprinttag
-from openprinttag_rpi.openprinttag.parser import parse_system_info
 from openprinttag_rpi.mqtt.tag_write_queue import (
     get_openprinttag_bin,
     has_openprinttag_bin,
@@ -106,7 +105,7 @@ def get_number_blocks(reader: ExtendedISO15693Sensor) -> int:
         _info = reader.get_system_info()
         _info_dict: dict[str, Any] | None = None
         if _info:
-            _info_dict = parse_system_info(_info)
+            _info_dict = reader.parse_system_info(_info)
         if _info_dict:
             return _info_dict.get("num_blocks", 255)
         else:
