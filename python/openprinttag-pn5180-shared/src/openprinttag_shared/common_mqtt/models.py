@@ -12,8 +12,7 @@ class EventMessage(BaseModel):
     error: ErrorDto | None = None
     tag: TagDto | None = None
 
-class FilamentUsageDto(BaseModel):
 
+class FilamentUsageDto(BaseModel):
     tag_uid: str
     job_data: CompletedJobDto
-

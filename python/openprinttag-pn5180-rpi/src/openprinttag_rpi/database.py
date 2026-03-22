@@ -4,15 +4,15 @@ from typing import Generator
 from openprinttag_shared.config import DATA_ROOT_FOLDER_PATH
 
 
-
 DB_PATH = DATA_ROOT_FOLDER_PATH / "pn5180_data.db"
 
+
 def init_db() -> None:
-  DB_PATH.parent.mkdir(parents=True, exist_ok=True)
-  with get_db() as db:
-    db.execute("PRAGMA journal_mode=WAL")
-    db.execute("PRAGMA foreign_keys=ON")
-    db.execute("""
+    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+    with get_db() as db:
+        db.execute("PRAGMA journal_mode=WAL")
+        db.execute("PRAGMA foreign_keys=ON")
+        db.execute("""
             CREATE TABLE IF NOT EXISTS filament_usage_message (                
                 tag_uid TEXT NOT NULL,
                 job_id INTEGER NOT NULL,
@@ -22,6 +22,7 @@ def init_db() -> None:
                 PRIMARY KEY(job_id, tag_uid)
             )
         """)
+
 
 @contextmanager
 def get_db() -> Generator[sqlite3.Connection, None, None]:

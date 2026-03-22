@@ -10,7 +10,9 @@ from openprinttag_rpi.pn5180_rpi.sensor import (
     PreCommandError,
 )
 from openprinttag_rpi.models.event_dto import EventDto
-from openprinttag_rpi.repository.sqlite.filament_usage_message import SqliteFilamentUsageMessageRepository
+from openprinttag_rpi.repository.sqlite.filament_usage_message import (
+    SqliteFilamentUsageMessageRepository,
+)
 from openprinttag_rpi.service import filament_usage as _filament_usage
 from openprinttag_shared.models.dto import TagDto
 from openprinttag_shared.openprinttag.parser import parse_openprinttag
@@ -32,6 +34,7 @@ _TAG_CACHE_: dict[str, tuple[OpenPrintTagMain, float]] = {}
 _TAG_CACHE_TTL: float = 120.0  # seconds
 
 _filament_usage_message_repository = SqliteFilamentUsageMessageRepository()
+
 
 def read_openprinttag(
     reader: ExtendedISO15693Sensor, num_blocks: int
@@ -188,7 +191,7 @@ def search_tag(
     _searching: bool = True
     while _searching:
         # Escape loop when new bin file detected
-        # it returns True even if cancel message received, 
+        # it returns True even if cancel message received,
         # so the searching loop is escaped.
         if has_openprinttag_bin():
             return _uid
@@ -219,7 +222,7 @@ def __pn5180_thread(reader: ExtendedISO15693Sensor) -> None:
     """Thread for reading rfid tags. Also handles write operations from queue."""
     while True:
         # Check for pending write operations first
-        # if cancel message received, 
+        # if cancel message received,
         # it will return None and continue to searching mode.
         _openprinttag_data: bytes | None = get_openprinttag_bin()
 
@@ -230,7 +233,7 @@ def __pn5180_thread(reader: ExtendedISO15693Sensor) -> None:
             )
             if not _uid:
                 continue
-            
+
             _filament_usage.cancel_not_processed_messages_for_tag(_uid)
             write_openprinttag(reader, _uid, _openprinttag_data)
             _wait_for_empty_queue()
@@ -243,9 +246,13 @@ def __pn5180_thread(reader: ExtendedISO15693Sensor) -> None:
         if not _uid:
             continue
 
-        _usage = _filament_usage.get_total_filament_usage_by_tag_uid_status(_uid, "NOT_PROCESSED")
+        _usage = _filament_usage.get_total_filament_usage_by_tag_uid_status(
+            _uid, "NOT_PROCESSED"
+        )
         if _usage:
-            print(f"Here we can save usage to the tag... UID: {_uid}, usage: {_usage}mm")
+            print(
+                f"Here we can save usage to the tag... UID: {_uid}, usage: {_usage}mm"
+            )
 
         _main: OpenPrintTagMain | None = read_openprinttag(
             reader, get_number_blocks(reader)

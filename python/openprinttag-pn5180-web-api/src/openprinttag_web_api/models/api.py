@@ -11,6 +11,7 @@ from openprinttag_web_api.models.domain import PrinterRecord
 
 # --- Tag models ---
 
+
 class TagListResponse(BaseModel):
     """Paginated list of tags."""
 
@@ -30,6 +31,7 @@ class TagBinResponse(BaseModel):
 
 
 # --- Event models ---
+
 
 class EventResponse(BaseModel):
     """Single event returned by the API."""
@@ -59,6 +61,7 @@ class EventListResponse(BaseModel):
 
 # --- Printer models ---
 
+
 class PrinterCreate(BaseModel):
     """Request model for creating/updating a printer."""
 
@@ -80,7 +83,7 @@ class Printer(PrinterCreate):
             name=printer.name,
             status=printer.status,
             ip=printer.ip,
-            token=printer.token
+            token=printer.token,
         )
 
 

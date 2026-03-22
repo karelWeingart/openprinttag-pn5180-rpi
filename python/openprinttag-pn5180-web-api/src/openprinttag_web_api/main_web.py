@@ -1,4 +1,3 @@
-import asyncio
 import uvicorn
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
@@ -16,17 +15,18 @@ from openprinttag_web_api.integrations.mqtt.pn5180_events_subscriber import (
     start_subscriber,
     stop_subscriber,
 )
-from openprinttag_web_api.integrations.printer.prusalink.client import watch_jobs
-from openprinttag_web_api.services.filament_tracking import filament_tracking
-from openprinttag_web_api.services.printer_connection_service import PrinterConnectorService, get_printer_connector
-from openprinttag_web_api.repositories.sqlite.printers import SqlitePrinterRepository
+from openprinttag_web_api.services.printer_connection_service import (
+    PrinterConnectorService,
+    get_printer_connector,
+)
+
 
 @asynccontextmanager
 async def lifespan(_: FastAPI) -> AsyncGenerator[None, None]:
     """Initialize DB and MQTT subscriber on startup."""
     init_db()
     start_subscriber()
-    printer_connector: PrinterConnectorService =  get_printer_connector()
+    printer_connector: PrinterConnectorService = get_printer_connector()
     await printer_connector.start()
     yield
     await printer_connector.stop()

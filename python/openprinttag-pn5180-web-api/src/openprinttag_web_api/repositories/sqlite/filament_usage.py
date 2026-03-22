@@ -1,12 +1,14 @@
 """Sqlite simple repository for filamentusage data."""
+
 from openprinttag_web_api.database import get_db
 from typing import Optional
 from openprinttag_web_api.models.domain import FilamentUsageRecord
 from openprinttag_web_api.repositories.filament_usage import FilamentUsageRepository
 
+
 class SqliteFilamentUsageRepository(FilamentUsageRepository):
     """SQLite implementation of filament usage repository."""
-    
+
     def save(
         self,
         event_id: int,
@@ -26,7 +28,7 @@ class SqliteFilamentUsageRepository(FilamentUsageRepository):
             )
             db.commit()
             return cursor.lastrowid or 0
-    
+
     def get_usage_by_event(self, event_id: int) -> Optional[FilamentUsageRecord]:
         """Get usage record by event ID."""
         with get_db() as db:
@@ -38,10 +40,10 @@ class SqliteFilamentUsageRepository(FilamentUsageRepository):
                 """,
                 (event_id,),
             ).fetchone()
-            
+
             if row is None:
                 return None
-            
+
             return FilamentUsageRecord(
                 id=row["id"],
                 event_id=row["event_id"],
@@ -50,7 +52,7 @@ class SqliteFilamentUsageRepository(FilamentUsageRepository):
                 filament_usage=row["filament_usage"],
                 timestamp=row["timestamp"],
             )
-    
+
     def get_total_usage_by_tag_uid(self, tag_uid: str) -> float:
         """Get total filament usage for a tag/spool."""
         with get_db() as db:
@@ -64,9 +66,9 @@ class SqliteFilamentUsageRepository(FilamentUsageRepository):
                 """,
                 (tag_uid,),
             ).fetchone()
-            
+
             return float(row["total"]) if row else 0.0
-        
+
     def get_total_usage_by_event_id(self, event_id: int) -> float:
         """Get total filament usage for a tag/spool."""
         with get_db() as db:
@@ -78,9 +80,9 @@ class SqliteFilamentUsageRepository(FilamentUsageRepository):
                 """,
                 (event_id,),
             ).fetchone()
-            
+
             return float(row["total"]) if row else 0.0
-    
+
     def get_remaining_filament(self, tag_uid: str, initial_weight_g: float) -> float:
         """Get remaining filament on spool."""
         used = self.get_total_usage_by_tag_uid(tag_uid)

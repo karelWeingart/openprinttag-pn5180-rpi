@@ -60,7 +60,7 @@ def get_openprinttag_bin() -> bytes | None:
 
 def has_openprinttag_bin() -> bool:
     """Check if there's pending write data without consuming it.
-    
+
     Returns:
         True if there's pending data, False otherwise.
     """

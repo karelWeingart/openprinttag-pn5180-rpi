@@ -14,9 +14,10 @@ class ErrorDto(BaseModel):
     error: str
     tag_uid: str | None = None
 
+
 class CompletedJobDto(BaseModel):
     """Data yielded when a print job completes."""
-    
+
     job_id: int
     file_name: str
     filament_type: str | None = None

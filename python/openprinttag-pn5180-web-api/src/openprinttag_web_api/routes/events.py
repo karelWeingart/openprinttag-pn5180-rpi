@@ -6,7 +6,9 @@ from fastapi import APIRouter, HTTPException, Path, Query, Depends
 
 from openprinttag_web_api.models import EventDetailResponse, EventListResponse
 from openprinttag_web_api.repositories.sqlite.events import SqliteEventRepository
-from openprinttag_web_api.repositories.sqlite.filament_usage import SqliteFilamentUsageRepository
+from openprinttag_web_api.repositories.sqlite.filament_usage import (
+    SqliteFilamentUsageRepository,
+)
 
 router = APIRouter(prefix="/events", tags=["events"])
 _event_repo = SqliteEventRepository()
@@ -61,10 +63,12 @@ def get_event(event_id: int):
         tag_data=event.tag_data,
     )
 
+
 @router.get("/latest/{event_type}", response_model=EventDetailResponse)
-def get_last_event_by_event_type(event_type: Annotated[str, Path(description="Type of event to filter by")],
-                            event_repository: Annotated[SqliteEventRepository, Depends(SqliteEventRepository)]
-                            ):
+def get_last_event_by_event_type(
+    event_type: Annotated[str, Path(description="Type of event to filter by")],
+    event_repository: Annotated[SqliteEventRepository, Depends(SqliteEventRepository)],
+):
     """Get the latest event by type."""
     event = event_repository.get_last_event_by_event_type(event_type)
     if event is None:
@@ -78,22 +82,31 @@ def get_last_event_by_event_type(event_type: Annotated[str, Path(description="Ty
         tag_data=event.tag_data,
     )
 
+
 @router.get("/{event_id}/filament", response_model=dict)
-async def get_filament_usage_for_event(event_id: int,
-                                        filament_usage_repository: Annotated[SqliteFilamentUsageRepository, Depends(SqliteFilamentUsageRepository)],
-                                        event_repository: Annotated[SqliteEventRepository, Depends(SqliteEventRepository)]):
+async def get_filament_usage_for_event(
+    event_id: int,
+    filament_usage_repository: Annotated[
+        SqliteFilamentUsageRepository, Depends(SqliteFilamentUsageRepository)
+    ],
+    event_repository: Annotated[SqliteEventRepository, Depends(SqliteEventRepository)],
+):
     """Get filament usage for a specific event."""
     _event = event_repository.get_by_id(event_id)
     if _event is None:
         raise HTTPException(status_code=404, detail="Event not found")
-    
-    filament_usage: float = filament_usage_repository.get_total_usage_by_event_id(event_id)
-    
+
+    filament_usage: float = filament_usage_repository.get_total_usage_by_event_id(
+        event_id
+    )
+
     if filament_usage is None:
-        raise HTTPException(status_code=404, detail="Filament usage not found for this event")
-    
+        raise HTTPException(
+            status_code=404, detail="Filament usage not found for this event"
+        )
+
     return {
         "event_id": event_id,
         "filament_usage": filament_usage,
-        "tag_id": _event.tag_id
+        "tag_id": _event.tag_id,
     }

@@ -3,7 +3,9 @@
 import logging
 from fastapi import APIRouter, HTTPException, Query, UploadFile, File
 
-from openprinttag_web_api.integrations.mqtt.bin_publisher import publish_openprinttag_data
+from openprinttag_web_api.integrations.mqtt.bin_publisher import (
+    publish_openprinttag_data,
+)
 from openprinttag_web_api.models import TagBinResponse, TagListResponse
 from openprinttag_web_api.repositories.sqlite.tags import SqliteTagRepository
 from openprinttag_web_api.repositories.sqlite.events import SqliteEventRepository

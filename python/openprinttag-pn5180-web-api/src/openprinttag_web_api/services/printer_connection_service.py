@@ -1,9 +1,13 @@
-""" Singleton service managing connection to the currently enabled printer. """
+"""Singleton service managing connection to the currently enabled printer."""
+
 from dataclasses import dataclass
-from typing import Optional, Callable, Awaitable
+from typing import Optional, Callable
 import asyncio
 
-from openprinttag_web_api.integrations.printer.prusalink.client import PrusaLinkClient, watch_jobs
+from openprinttag_web_api.integrations.printer.prusalink.client import (
+    PrusaLinkClient,
+    watch_jobs,
+)
 from openprinttag_web_api.models.domain import PrinterRecord
 from openprinttag_web_api.repositories.printers import PrinterRepository
 from openprinttag_web_api.services.filament_tracking import filament_tracking
@@ -13,6 +17,7 @@ from openprinttag_web_api.repositories.sqlite.printers import SqlitePrinterRepos
 @dataclass
 class PrinterConnection:
     """Current active printer connection state."""
+
     printer: PrinterRecord
     client: PrusaLinkClient
     watcher_task: Optional[asyncio.Task] = None
@@ -21,7 +26,7 @@ class PrinterConnection:
 class PrinterConnectorService:
     """
     Manages connection to the currently enabled printer.
-    
+
     Responsibilities:
     - Fetch enabled printer on startup
     - Create/maintain PrusaLinkClient connection
@@ -57,7 +62,7 @@ class PrinterConnectorService:
             _ = await self._connection.client.get_status()
         except Exception as e:
             return {"status": "error", "details": str(e)}
-        
+
         return {"status": "ok"}
 
     async def stop(self) -> None:
@@ -79,11 +84,9 @@ class PrinterConnectorService:
         """Establish connection and start job watcher."""
         _client = PrusaLinkClient(printer.ip or "", printer.token or "")
         await _client.__aenter__()
-        
-        _task: asyncio.Task = asyncio.create_task(
-            self._run_job_watcher(_client)
-        )
-        
+
+        _task: asyncio.Task = asyncio.create_task(self._run_job_watcher(_client))
+
         self._connection = PrinterConnection(
             printer=printer,
             client=_client,
@@ -94,24 +97,23 @@ class PrinterConnectorService:
         """Stop watcher and cleanup connection."""
         if not self._connection:
             return
-        
+
         if self._connection.watcher_task:
             self._connection.watcher_task.cancel()
             try:
                 await self._connection.watcher_task
             except asyncio.CancelledError:
                 pass
-        
+
         if self._connection.client:
             await self._connection.client.__aexit__(None, None, None)
-        
+
         self._connection = None
 
     async def _run_job_watcher(self, client: PrusaLinkClient) -> None:
         """Run job watcher loop, call handler on completion."""
         async for job in watch_jobs(client):
             await self._on_job_complete(job)
-
 
 
 _printer_connector: Optional[PrinterConnectorService] = None
