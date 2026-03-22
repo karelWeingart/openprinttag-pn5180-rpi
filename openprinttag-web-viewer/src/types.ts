@@ -12,3 +12,14 @@ export interface TagData {
   manufacturer: string | null;
   primary_color_hex: string | null;
 }
+
+export interface PrinterDto {
+  name: string;
+  status?: string | null;
+  ip?: string | null;
+  token?: string | null;
+}
+
+export interface PrinterDbDto extends PrinterDto {
+  id: number;
+}

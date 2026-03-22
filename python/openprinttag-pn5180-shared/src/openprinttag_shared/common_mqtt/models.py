@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from openprinttag_shared.models.dto import TagDto, ErrorDto
+from openprinttag_shared.models.dto import TagDto, ErrorDto, CompletedJobDto
 
 
 class EventMessage(BaseModel):
@@ -11,3 +11,9 @@ class EventMessage(BaseModel):
     event_type: str
     error: ErrorDto | None = None
     tag: TagDto | None = None
+
+class FilamentUsageDto(BaseModel):
+
+    tag_uid: str
+    job_data: CompletedJobDto
+

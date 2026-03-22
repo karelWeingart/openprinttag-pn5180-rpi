@@ -5,7 +5,7 @@ export function Pagination({ tableName, pagination, onPageChange }: PaginationCo
 
   return (
     <nav aria-label={`Pagination for ${tableName}`}>
-      <ul className="pagination mb-0 mt-3 float-end">
+      <ul className="pagination mb-0 float-end">
         <li className={`page-item ${!hasPrevious ? "disabled" : ""}`}>
           <a
             className={`page-link text-secondary`}

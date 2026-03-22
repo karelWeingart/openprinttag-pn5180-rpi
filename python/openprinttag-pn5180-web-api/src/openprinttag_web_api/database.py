@@ -2,10 +2,11 @@
 
 import sqlite3
 from contextlib import contextmanager
-from pathlib import Path
-from typing import Generator
 
-DB_PATH = Path.home() / ".openprinttag" / "events.db"
+from typing import Generator
+from openprinttag_shared.config import DATA_ROOT_FOLDER_PATH
+
+DB_PATH = DATA_ROOT_FOLDER_PATH / "events.db"
 
 
 def init_db() -> None:
@@ -36,6 +37,19 @@ def init_db() -> None:
             )
             """
         )
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS filament_usage (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                event_id INTEGER NOT NULL,
+                job_id INTEGER NOT NULL,
+                job_status TEXT,
+                filament_usage FLOAT NOT NULL,
+                timestamp TEXT NOT NULL DEFAULT (datetime('now')),
+                tag_id INTEGER NOT NULL,
+                FOREIGN KEY (event_id) REFERENCES events (id),
+                FOREIGN KEY (tag_id) REFERENCES tags (id)
+            )
+        """)
         db.execute(
             """
             CREATE INDEX IF NOT EXISTS idx_events_type ON events (event_type)
@@ -54,6 +68,17 @@ def init_db() -> None:
         db.execute(
             """
             CREATE INDEX IF NOT EXISTS idx_tags_tag_uid ON tags (tag_uid)
+            """
+        )
+        db.execute(
+            """
+            CREATE TABLE IF NOT EXISTS printers (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                status TEXT,
+                ip TEXT,
+                token TEXT
+            )
             """
         )
         db.commit()

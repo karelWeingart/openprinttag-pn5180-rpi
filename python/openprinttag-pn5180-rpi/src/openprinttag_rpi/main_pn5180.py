@@ -18,6 +18,7 @@ from openprinttag_shared.common_mqtt.config import (
     MQTT_PORT,
     MQTT_WRITE_QUEUE_TOPIC_NAME,
 )
+from openprinttag_rpi.database import init_db
 
 PIN_RST = 7
 PIN_BUSY = 25
@@ -35,6 +36,8 @@ def __main__():
 
     pi.set_mode(PIN_RST, pigpio.OUTPUT)
     pi.set_mode(PIN_BUSY, pigpio.INPUT)
+
+    init_db()
 
     # logging.info("Pigpio initialization complete.")
 
