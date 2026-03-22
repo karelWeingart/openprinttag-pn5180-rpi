@@ -1,6 +1,7 @@
 """Tag routes."""
 
 import logging
+import math
 from fastapi import APIRouter, HTTPException, Query, UploadFile, File
 
 from openprinttag_web_api.integrations.mqtt.bin_publisher import (
@@ -30,6 +31,7 @@ async def list_tags(
     return TagListResponse(
         tags=tags,
         total=total,
+        total_pages=math.ceil(total / page_size),
         page=page,
         page_size=page_size,
     )

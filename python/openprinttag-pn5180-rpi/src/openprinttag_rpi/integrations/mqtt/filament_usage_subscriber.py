@@ -26,7 +26,7 @@ def _save_filament_usage_message(payload: bytes) -> None:
             _filament_usage_repository.save(
                 job_id=str(_usage.job_id),
                 tag_uid=_message.tag_uid,
-                filament_usage=_usage.filament_usage,
+                filament_usage=_usage.used_filament_g or 0.0,
             )
     except ValidationError as e:
         logging.error(f"Failed to process filament usage message: {e}")

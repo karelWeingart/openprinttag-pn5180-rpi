@@ -10,7 +10,7 @@ from openprinttag_rpi.callbacks.console import register_default_callbacks
 from openprinttag_rpi.callbacks.led_neopixel import register_neopixel_callbacks
 from openprinttag_rpi.callbacks.mqtt_publisher import setup_mqtt_publisher
 from openprinttag_rpi.callbacks.webapi_publisher import setup_webapi_publisher
-from openprinttag_rpi.mqtt.tag_write_queue import setup_write_queue
+from openprinttag_rpi.integrations.mqtt.tag_write_queue import setup_write_queue
 from openprinttag_rpi.openprinttag.reader import run as run_openprinttag_reader
 from openprinttag_rpi.common.api import run as run_callbacks_thread
 from openprinttag_shared.common_mqtt.config import (
