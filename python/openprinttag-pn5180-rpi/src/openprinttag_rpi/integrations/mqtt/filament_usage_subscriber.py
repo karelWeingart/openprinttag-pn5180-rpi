@@ -32,7 +32,7 @@ def _save_filament_usage_message(payload: bytes) -> None:
         logging.error(f"Failed to process filament usage message: {e}")
 
 
-def setup_filament_usage_subscriber(broker, port: int, topic: str) -> bool:
+def setup_filament_usage_subscriber(broker: str, port: int, topic: str) -> bool:
     """Setup MQTT subscriber for the write queue.
 
     Args:
