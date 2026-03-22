@@ -10,6 +10,7 @@ from openprinttag_rpi.callbacks.console import register_default_callbacks
 from openprinttag_rpi.callbacks.led_neopixel import register_neopixel_callbacks
 from openprinttag_rpi.callbacks.mqtt_publisher import setup_mqtt_publisher
 from openprinttag_rpi.callbacks.webapi_publisher import setup_webapi_publisher
+from openprinttag_rpi.integrations.mqtt.filament_usage_subscriber import setup_filament_usage_subscriber
 from openprinttag_rpi.integrations.mqtt.tag_write_queue import setup_write_queue
 from openprinttag_rpi.openprinttag.reader import run as run_openprinttag_reader
 from openprinttag_rpi.common.api import run as run_callbacks_thread
@@ -17,6 +18,7 @@ from openprinttag_shared.common_mqtt.config import (
     MQTT_BROKER,
     MQTT_PORT,
     MQTT_WRITE_QUEUE_TOPIC_NAME,
+    MQTT_FILAMENT_USAGE_TOPIC_NAME,
 )
 from openprinttag_rpi.database import init_db
 
@@ -47,6 +49,9 @@ def __main__():
     setup_webapi_publisher()
     setup_write_queue(
         broker=MQTT_BROKER, port=MQTT_PORT, topic=MQTT_WRITE_QUEUE_TOPIC_NAME
+    )
+    setup_filament_usage_subscriber(
+        broker=MQTT_BROKER, port=MQTT_PORT, topic=MQTT_FILAMENT_USAGE_TOPIC_NAME
     )
     run_callbacks_thread()
     run_openprinttag_reader(pi)
