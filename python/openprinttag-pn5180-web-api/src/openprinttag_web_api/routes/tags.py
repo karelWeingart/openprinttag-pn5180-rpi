@@ -1,16 +1,22 @@
 """Tag routes."""
 
 import logging
+import math
 from fastapi import APIRouter, HTTPException, Query, UploadFile, File
 
-from openprinttag_web_api.database import get_db
-from openprinttag_web_api.mqtt.publisher import publish_openprinttag_data
+from openprinttag_web_api.integrations.mqtt.bin_publisher import (
+    publish_openprinttag_data,
+)
 from openprinttag_web_api.models import TagBinResponse, TagListResponse
+from openprinttag_web_api.repositories.sqlite.tags import SqliteTagRepository
+from openprinttag_web_api.repositories.sqlite.events import SqliteEventRepository
 from openprinttag_shared.openprinttag.parser import parse_openprinttag
 from openprinttag_shared.models.openprinttag_main import OpenPrintTagMain
 from openprinttag_shared.models.dto import TagDto
 
 router = APIRouter(prefix="/tags", tags=["tags"])
+_tag_repo = SqliteTagRepository()
+_event_repo = SqliteEventRepository()
 
 
 @router.get("", response_model=TagListResponse)
@@ -19,27 +25,13 @@ async def list_tags(
     page_size: int = Query(50, ge=1, le=200, description="Items per page"),
 ):
     """List all known tags with pagination."""
-    offset = (page - 1) * page_size
-
-    with get_db() as db:
-        total = db.execute("SELECT COUNT(DISTINCT tag_uid) FROM tags").fetchone()[0]
-
-        rows = db.execute(
-            """
-            SELECT t.tag_uid, t.data FROM tags t
-            INNER JOIN (
-                SELECT tag_uid, MAX(id) AS max_id FROM tags GROUP BY tag_uid
-            ) latest ON t.id = latest.max_id
-            ORDER BY t.tag_uid LIMIT ? OFFSET ?
-            """,
-            [page_size, offset],
-        ).fetchall()
-
-    tags = [TagDto.model_validate_json(row["data"]) for row in rows]
+    tags_records, total = _tag_repo.list_all(page=page, page_size=page_size)
+    tags = [TagDto.model_validate_json(record.data) for record in tags_records]
 
     return TagListResponse(
         tags=tags,
         total=total,
+        total_pages=math.ceil(total / page_size),
         page=page,
         page_size=page_size,
     )
@@ -48,18 +40,10 @@ async def list_tags(
 @router.get("/{tag_uid}/event/{event_id}", response_model=TagDto)
 async def get_tag(tag_uid: str, event_id: int):
     """Get tag data associated with a specific event."""
-    with get_db() as db:
-        row = db.execute(
-            """
-            SELECT t.data FROM tags t
-            JOIN events e ON e.tag_id = t.id
-            WHERE t.tag_uid = ? AND e.id = ?
-            """,
-            [tag_uid, event_id],
-        ).fetchone()
-    if row is None:
+    event = _event_repo.get_by_id(event_id)
+    if event is None or event.tag_uid != tag_uid or event.tag_data is None:
         raise HTTPException(status_code=404, detail="Tag not found")
-    return TagDto.model_validate_json(row["data"])
+    return TagDto.model_validate_json(event.tag_data)
 
 
 @router.delete("/bin")

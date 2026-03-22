@@ -1,25 +1,17 @@
 """Event routes."""
 
-from typing import Optional
+from typing import Optional, Annotated
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Path, Query, Depends
 
-from openprinttag_web_api.database import get_db
 from openprinttag_web_api.models import EventDetailResponse, EventListResponse
+from openprinttag_web_api.repositories.sqlite.events import SqliteEventRepository
+from openprinttag_web_api.repositories.sqlite.filament_usage import (
+    SqliteFilamentUsageRepository,
+)
 
 router = APIRouter(prefix="/events", tags=["events"])
-
-_EVENT_QUERY = """
-    SELECT 
-        e.id, 
-        e.timestamp, 
-        e.event_type, 
-        e.success,
-        t.tag_uid,
-        t.data AS tag_data
-    FROM events e
-    LEFT JOIN tags t ON t.id = e.tag_id
-"""
+_event_repo = SqliteEventRepository()
 
 
 @router.get("", response_model=EventListResponse)
@@ -30,37 +22,27 @@ def list_events(
     success: Optional[bool] = Query(None, description="Filter by success/failure"),
 ):
     """List events with pagination and optional filters."""
-    _offset = (page - 1) * page_size
-    _conditions: list[str] = []
-    _params: list = []
-
-    if event_type:
-        _conditions.append("e.event_type = ?")
-        _params.append(event_type)
-    if success:
-        _conditions.append("e.success = ?")
-        _params.append(int(success))
-
-    _where = f"WHERE {' AND '.join(_conditions)}" if _conditions else ""
-
-    with get_db() as _db:
-        _total = _db.execute(
-            f"SELECT COUNT(*) FROM events e {_where}", _params
-        ).fetchone()[0]
-
-        _rows = _db.execute(
-            f"{_EVENT_QUERY} {_where} ORDER BY e.timestamp DESC LIMIT ? OFFSET ?",
-            _params + [page_size, _offset],
-        ).fetchall()
-
-    _events = [
-        EventDetailResponse(**{k: _row[k] for k in _row.keys()}) for _row in _rows
-    ]
+    events, total = _event_repo.list_all(
+        page=page,
+        page_size=page_size,
+        event_type=event_type,
+        success=success,
+    )
 
     return EventListResponse(
-        events=_events,
-        total=_total,
-        total_pages=(_total + page_size - 1) // page_size,
+        events=[
+            EventDetailResponse(
+                id=e.id,
+                event_type=e.event_type,
+                timestamp=e.timestamp,
+                tag_uid=e.tag_uid,
+                success=e.success,
+                tag_data=e.tag_data,
+            )
+            for e in events
+        ],
+        total=total,
+        total_pages=(total + page_size - 1) // page_size,
         page=page,
         page_size=page_size,
     )
@@ -69,8 +51,62 @@ def list_events(
 @router.get("/{event_id}", response_model=EventDetailResponse)
 def get_event(event_id: int):
     """Get a single event by ID."""
-    with get_db() as _db:
-        _row = _db.execute(f"{_EVENT_QUERY} WHERE e.id = ?", [event_id]).fetchone()
-    if _row is None:
+    event = _event_repo.get_by_id(event_id)
+    if event is None:
         raise HTTPException(status_code=404, detail="Event not found")
-    return EventDetailResponse(**{k: _row[k] for k in _row.keys()})
+    return EventDetailResponse(
+        id=event.id,
+        event_type=event.event_type,
+        timestamp=event.timestamp,
+        tag_uid=event.tag_uid,
+        success=event.success,
+        tag_data=event.tag_data,
+    )
+
+
+@router.get("/latest/{event_type}", response_model=EventDetailResponse)
+def get_last_event_by_event_type(
+    event_type: Annotated[str, Path(description="Type of event to filter by")],
+    event_repository: Annotated[SqliteEventRepository, Depends(SqliteEventRepository)],
+):
+    """Get the latest event by type."""
+    event = event_repository.get_last_event_by_event_type(event_type)
+    if event is None:
+        raise HTTPException(status_code=404, detail="Event not found")
+    return EventDetailResponse(
+        id=event.id,
+        event_type=event.event_type,
+        timestamp=event.timestamp,
+        tag_uid=event.tag_uid,
+        success=event.success,
+        tag_data=event.tag_data,
+    )
+
+
+@router.get("/{event_id}/filament", response_model=dict)
+async def get_filament_usage_for_event(
+    event_id: int,
+    filament_usage_repository: Annotated[
+        SqliteFilamentUsageRepository, Depends(SqliteFilamentUsageRepository)
+    ],
+    event_repository: Annotated[SqliteEventRepository, Depends(SqliteEventRepository)],
+):
+    """Get filament usage for a specific event."""
+    _event = event_repository.get_by_id(event_id)
+    if _event is None:
+        raise HTTPException(status_code=404, detail="Event not found")
+
+    filament_usage: float = filament_usage_repository.get_total_usage_by_event_id(
+        event_id
+    )
+
+    if filament_usage is None:
+        raise HTTPException(
+            status_code=404, detail="Filament usage not found for this event"
+        )
+
+    return {
+        "event_id": event_id,
+        "filament_usage": filament_usage,
+        "tag_id": _event.tag_id,
+    }

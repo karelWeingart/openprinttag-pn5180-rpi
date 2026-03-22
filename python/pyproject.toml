@@ -17,6 +17,7 @@ dev = [
     "mypy>=1.19.1",
     "ruff>=0.8.0",
     "setuptools-scm>=9.2.2",
+    "types-requests>=2.32.0",
 ]
 
 [build-system]

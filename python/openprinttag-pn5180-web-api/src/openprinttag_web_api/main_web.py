@@ -10,9 +10,14 @@ from fastapi.staticfiles import StaticFiles
 from openprinttag_web_api.database import init_db
 from openprinttag_web_api.routes.events import router as events_router
 from openprinttag_web_api.routes.tags import router as tags_router
-from openprinttag_web_api.mqtt.pn5180_events_subscriber import (
+from openprinttag_web_api.routes.printers import router as printers_router
+from openprinttag_web_api.integrations.mqtt.pn5180_events_subscriber import (
     start_subscriber,
     stop_subscriber,
+)
+from openprinttag_web_api.services.printer_connection_service import (
+    PrinterConnectorService,
+    get_printer_connector,
 )
 
 
@@ -21,7 +26,10 @@ async def lifespan(_: FastAPI) -> AsyncGenerator[None, None]:
     """Initialize DB and MQTT subscriber on startup."""
     init_db()
     start_subscriber()
+    printer_connector: PrinterConnectorService = get_printer_connector()
+    await printer_connector.start()
     yield
+    await printer_connector.stop()
     stop_subscriber()
 
 
@@ -34,7 +42,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["http://localhost:3000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -42,6 +50,7 @@ app.add_middleware(
 
 app.include_router(events_router)
 app.include_router(tags_router)
+app.include_router(printers_router)
 
 # for the react app
 app.mount("/", StaticFiles(directory="static", html=True), name="static")

@@ -1,4 +1,4 @@
-"""Pydantic models for the web API."""
+"""API request/response models (DTOs)."""
 
 from typing import Optional
 
@@ -6,6 +6,10 @@ from pydantic import BaseModel
 
 from openprinttag_shared.models.dto import TagDto
 from openprinttag_shared.models.openprinttag_main import OpenPrintTagMain
+from openprinttag_web_api.models.domain import PrinterRecord
+
+
+# --- Tag models ---
 
 
 class TagListResponse(BaseModel):
@@ -13,6 +17,7 @@ class TagListResponse(BaseModel):
 
     tags: list[TagDto]
     total: int
+    total_pages: int
     page: int
     page_size: int
 
@@ -23,6 +28,9 @@ class TagBinResponse(BaseModel):
     size: int
     file_name: str
     data: OpenPrintTagMain | None = None
+
+
+# --- Event models ---
 
 
 class EventResponse(BaseModel):
@@ -45,6 +53,44 @@ class EventListResponse(BaseModel):
     """Paginated list of events."""
 
     events: list[EventDetailResponse]
+    total: int
+    total_pages: int
+    page: int
+    page_size: int
+
+
+# --- Printer models ---
+
+
+class PrinterCreate(BaseModel):
+    """Request model for creating/updating a printer."""
+
+    name: str
+    status: Optional[str] = None
+    ip: Optional[str] = None
+    token: Optional[str] = None
+
+
+class Printer(PrinterCreate):
+    """Printer with database ID."""
+
+    id: int
+
+    @classmethod
+    def from_orm(cls, printer: PrinterRecord) -> "Printer":
+        return cls(
+            id=printer.id,
+            name=printer.name,
+            status=printer.status,
+            ip=printer.ip,
+            token=printer.token,
+        )
+
+
+class PrinterListResponse(BaseModel):
+    """Paginated list of printers."""
+
+    printers: list[Printer]
     total: int
     total_pages: int
     page: int

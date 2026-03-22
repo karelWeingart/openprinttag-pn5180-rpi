@@ -47,13 +47,21 @@ def get_openprinttag_bin() -> bytes | None:
 
     Returns:
         Write data bytes or None if queue is empty.
+        It returns None if "cancel" message is received.
     """
     try:
-        return _write_queue.get_nowait()
+        _data = _write_queue.get_nowait()
+        if _data == b"cancel":
+            return None
+        return _data
     except Empty:
         return None
 
 
 def has_openprinttag_bin() -> bool:
-    """Check if there's pending write data without consuming it."""
+    """Check if there's pending write data without consuming it.
+
+    Returns:
+        True if there's pending data, False otherwise.
+    """
     return not _write_queue.empty()

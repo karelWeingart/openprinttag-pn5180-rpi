@@ -8,6 +8,7 @@ dependencies = [
     "cbor2==5.8.0",
     "ndeflib>=0.3.3",
     "paho-mqtt>=2.1.0",
+    "pillow==12.1.1",
     "pydantic==2.12.5",
 ]
 

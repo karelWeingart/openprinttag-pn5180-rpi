@@ -1,0 +1,8 @@
+@keyframes fadeOutBadge {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+.pn5180-notification-badge {
+  animation: fadeOutBadge 8s ease-in-out forwards;
+}

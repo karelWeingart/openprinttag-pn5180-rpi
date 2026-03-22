@@ -13,7 +13,6 @@ dependencies = [
     "adafruit-circuitpython-neopixel>=6.3.21",
     "paho-mqtt>=2.1.0",
     "pigpio>=1.78",
-    "pillow>=12.1.1",
     "openprinttag-pn5180-shared",
 ]
 
