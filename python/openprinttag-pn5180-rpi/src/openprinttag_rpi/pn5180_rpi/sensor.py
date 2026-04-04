@@ -27,10 +27,18 @@ class ExtendedISO15693Sensor(ISO15693Sensor):
 
     _READ_WAIT_TIME = 0.01  # seconds
     _BLOCK_READ_TIMEOUT = 0.1  # seconds
+    _MAX_READ_RETRIES = 2  # number of hardware reset retries for read failures
     _BLOCK_WRITE_TIMEOUT = 0.15  # seconds (writes take longer than reads)
     _BLOCK_READ_EVENT_STEP = 10  # Trigger BLOCK_UPLOADED event every N blocks
     _BLOCK_WRITE_EVENT_STEP = 10  # Trigger BLOCK_WRITTEN event every N blocks
     _DEFAULT_BLOCK_SIZE = 4  # bytes per block (ISO15693 typical)
+
+    def _hardware_reset(self) -> None:
+        """Toggle the PN5180 reset pin to recover from stale hardware state."""
+        self._pi.write(self._reset_pin, 0)
+        time.sleep(0.1)
+        self._pi.write(self._reset_pin, 1)
+        time.sleep(0.1)
 
     def __pre_command(self) -> None:
         """
@@ -248,38 +256,45 @@ class ExtendedISO15693Sensor(ISO15693Sensor):
         """Reads block by block iterating each till blocks reached.
         Simple timeout is implemented - if block is not loaded within
         _BLOCK_READ_TIMEOUT exception is thrown and tag must be re-read.
+        On failure, a hardware reset is attempted and the read is retried
+        up to _MAX_READ_RETRIES times to recover from stale PN5180 state.
         events for callbacks are registered:
         - BLOCK_UPLOADED: for every 10th block read.
         - ERROR: for any blocking failure during the reading.
         """
-        _raw = b""
-        try:
-            self.__pre_command()
-            for _block in range(blocks):
-                _block_start = time.time()
+        for _attempt in range(1 + self._MAX_READ_RETRIES):
+            _raw = b""
+            try:
+                self.__pre_command()
+                for _block in range(blocks):
+                    _block_start = time.time()
 
-                _data: bytes | None = None
-                while _data is None:
-                    _data = self.read_single_block(_block, pre_command=False)
-                    if time.time() - _block_start > self._BLOCK_READ_TIMEOUT:
-                        break
+                    _data: bytes | None = None
+                    while _data is None:
+                        _data = self.read_single_block(_block, pre_command=False)
+                        if time.time() - _block_start > self._BLOCK_READ_TIMEOUT:
+                            break
 
-                if _data is None:
-                    raise CommandError(f"Timeout reading block {_block}")
-                _raw += _data
+                    if _data is None:
+                        raise CommandError(f"Timeout reading block {_block}")
+                    _raw += _data
 
-                if (_block + 1) % self._BLOCK_READ_EVENT_STEP == 0:
-                    register_event(
-                        EventDto(
-                            event_type=TagReadEvent.BLOCK_UPLOADED,
-                            data={"block": _block, "blocks": blocks},
+                    if (_block + 1) % self._BLOCK_READ_EVENT_STEP == 0:
+                        register_event(
+                            EventDto(
+                                event_type=TagReadEvent.BLOCK_UPLOADED,
+                                data={"block": _block, "blocks": blocks},
+                            )
                         )
-                    )
-            return _raw
-        except (CommandError, PreCommandError) as e:
-            register_event(
-                EventDto(event_type=TagReadEvent.ERROR, data={"error": str(e)})
-            )
-            return b""
-        finally:
-            self.__post_command()
+                return _raw
+            except (CommandError, PreCommandError) as e:
+                if _attempt < self._MAX_READ_RETRIES:
+                    self._hardware_reset()
+                    continue
+                register_event(
+                    EventDto(event_type=TagReadEvent.ERROR, data={"error": str(e)})
+                )
+                return b""
+            finally:
+                self.__post_command()
+        return b""

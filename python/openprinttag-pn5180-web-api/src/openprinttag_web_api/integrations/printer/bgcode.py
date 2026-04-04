@@ -3,7 +3,6 @@
 import re
 from typing import Optional
 
-import requests
 from pydantic import BaseModel
 
 
@@ -17,7 +16,7 @@ class GcodeMetadata(BaseModel):
     estimated_print_time: Optional[int] = None  # seconds
 
 
-def parse_gcode_header(data: bytes) -> GcodeMetadata:
+def parse_gcode_header(data: bytes) -> GcodeMetadata | None:
     """Parse metadata from (b)gcode file header.
 
     Args:
@@ -26,7 +25,9 @@ def parse_gcode_header(data: bytes) -> GcodeMetadata:
     Returns:
         GcodeMetadata with extracted values
     """
-    # Convert bytes to string, ignoring binary portions
+    if not data:
+        return None
+
     try:
         text = data.decode("utf-8", errors="ignore")
     except Exception:
@@ -51,50 +52,7 @@ def parse_gcode_header(data: bytes) -> GcodeMetadata:
             except (ValueError, TypeError):
                 pass
 
-    # Debug: log if filament_used_g was not found
-    if metadata.filament_used_g is None:
-        # Check if the text contains filament data at all
-        if "filament used" in text.lower():
-            print(
-                f"DEBUG: Found 'filament used' but regex didn't match. Sample: {text[text.lower().find('filament used') : text.lower().find('filament used') + 100]}"
-            )
-        else:
-            print(
-                f"DEBUG: 'filament used' not found in header. Header length: {len(text)}"
-            )
-
     return metadata
-
-
-def fetch_bgcode_metadata(
-    host: str,
-    api_key: str,
-    file_path: str,
-    port: int = 80,
-    header_size: int = 8192,
-) -> GcodeMetadata:
-    """Fetch and parse bgcode metadata from PrusaLink.
-
-    Args:
-        host: Printer IP address
-        api_key: PrusaLink API key
-        file_path: Path to file on printer (e.g., '/usb/FILE.BGC')
-        port: Printer port (default 80)
-        header_size: Bytes to download for header (default 4KB)
-
-    Returns:
-        BgcodeMetadata with extracted values
-    """
-    url = f"http://{host}:{port}{file_path}"
-    headers = {
-        "X-Api-Key": api_key,
-        "Range": f"bytes=0-{header_size - 1}",
-    }
-
-    response = requests.get(url, headers=headers, timeout=10)
-    response.raise_for_status()
-
-    return parse_gcode_header(response.content)
 
 
 def calculate_filament_used(

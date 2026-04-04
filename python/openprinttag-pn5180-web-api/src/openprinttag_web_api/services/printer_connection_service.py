@@ -6,6 +6,8 @@ import asyncio
 
 from openprinttag_web_api.integrations.printer.prusalink.client import (
     PrusaLinkClient,
+)
+from openprinttag_web_api.integrations.printer.job_tracker import (
     watch_jobs,
 )
 from openprinttag_web_api.models.domain import PrinterRecord
@@ -112,8 +114,8 @@ class PrinterConnectorService:
 
     async def _run_job_watcher(self, client: PrusaLinkClient) -> None:
         """Run job watcher loop, call handler on completion."""
-        async for job in watch_jobs(client):
-            await self._on_job_complete(job)
+        async for _job in watch_jobs(client):
+            self._on_job_complete(_job)
 
 
 _printer_connector: Optional[PrinterConnectorService] = None
