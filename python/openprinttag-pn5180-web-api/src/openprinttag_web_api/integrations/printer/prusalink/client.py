@@ -86,12 +86,17 @@ class PrusaLinkClient:
         )
         _response.raise_for_status()
         return _response.json()
-    
+
     async def get_gcode_metadata(
         self, file_path: str, header_size: int = 8192
     ) -> GcodeMetadata | None:
         """Fetch and parse gcode metadata (only downloads header)."""
-        _headers: dict[str, Any] = {**self.headers, "Range": f"bytes=0-{header_size - 1}"}
-        _response: httpx.Response = await self.client.get(f"{self.base_url}{file_path}", headers=_headers)
+        _headers: dict[str, Any] = {
+            **self.headers,
+            "Range": f"bytes=0-{header_size - 1}",
+        }
+        _response: httpx.Response = await self.client.get(
+            f"{self.base_url}{file_path}", headers=_headers
+        )
         _response.raise_for_status()
         return parse_gcode_header(_response.content)

@@ -3,7 +3,6 @@
 import re
 from typing import Optional
 
-import requests
 from pydantic import BaseModel
 
 
@@ -54,6 +53,7 @@ def parse_gcode_header(data: bytes) -> GcodeMetadata | None:
                 pass
 
     return metadata
+
 
 def calculate_filament_used(
     metadata: GcodeMetadata,

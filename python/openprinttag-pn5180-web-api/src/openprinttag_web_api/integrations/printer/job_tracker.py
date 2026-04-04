@@ -24,7 +24,7 @@ class JobWatcherState:
     gcode_download_attempts: int = 0
     is_printing: bool = True
     metadata: Optional[GcodeMetadata] = None
-    file_name: Optional[str] = None    
+    file_name: Optional[str] = None
     last_progress: float = 0.0
 
     def create_completed_job(self, end_reason: str) -> CompletedJobDto:
@@ -41,13 +41,13 @@ class JobWatcherState:
             end_reason=end_reason,
         )
 
+
 _jobs: dict[int, JobWatcherState] = {}
 
-def add_job_to_watchlist(
-    job: JobResponse
-) -> None:
-    """add job to watchlist otherwise update progress 
-        and check for completion.
+
+def add_job_to_watchlist(job: JobResponse) -> None:
+    """add job to watchlist otherwise update progress
+    and check for completion.
     """
     if job.id not in _jobs:
         # New job started
@@ -64,18 +64,23 @@ def add_job_to_watchlist(
         _job_state = _jobs[job.id]
         _job_state.last_progress = job.progress
 
+
 def finish_job_in_watchlist() -> None:
     """Check watchlist for any job that was printing but is no longer active."""
     for _job in _jobs.values():
         if _job.is_printing:
             _job.is_printing = False
 
+
 def remove_job_from_watchlist(job_id: int) -> None:
     """Remove job from watchlist."""
     if job_id in _jobs:
         del _jobs[job_id]
 
-async def get_gcode_metadata_for_jobs(client: PrusaLinkClient, max_gcode_download_attempts: int) -> int:
+
+async def get_gcode_metadata_for_jobs(
+    client: PrusaLinkClient, max_gcode_download_attempts: int
+) -> int:
     """Download gcode metadata for any job that hasn't had it downloaded yet."""
     _downloaded_count = 0
     for _job in _jobs.values():
@@ -87,13 +92,19 @@ async def get_gcode_metadata_for_jobs(client: PrusaLinkClient, max_gcode_downloa
                     _job.gcode_downloaded = True
                     _downloaded_count += 1
             except httpx.HTTPError as e:
-                if not _job.is_printing and _job.gcode_download_attempts >= max_gcode_download_attempts:
-                    print(f"Max gcode download attempts reached for job {_job.job_id}. Skipping metadata.")
+                if (
+                    not _job.is_printing
+                    and _job.gcode_download_attempts >= max_gcode_download_attempts
+                ):
+                    print(
+                        f"Max gcode download attempts reached for job {_job.job_id}. Skipping metadata."
+                    )
                     remove_job_from_watchlist(_job.job_id)
                 elif not _job.is_printing:
                     _job.gcode_download_attempts += 1
                 print(f"HTTP error while downloading gcode metadata: {e}")
     return _downloaded_count
+
 
 async def watch_jobs(
     client: PrusaLinkClient,
@@ -121,7 +132,9 @@ async def watch_jobs(
             else:
                 finish_job_in_watchlist()
 
-            _gcode_downloaded = await get_gcode_metadata_for_jobs(client, max_gcode_download_attempts)
+            _gcode_downloaded = await get_gcode_metadata_for_jobs(
+                client, max_gcode_download_attempts
+            )
 
             if _gcode_downloaded:
                 _completed_jobs: list[CompletedJobDto | None] = [
@@ -133,7 +146,6 @@ async def watch_jobs(
                     yield _completed_job
                     remove_job_from_watchlist(_completed_job.job_id)
                 print(f"Downloaded metadata for {_gcode_downloaded} job(s).")
-
 
         except httpx.HTTPError as e:
             print(f"HTTP error: {e}")
