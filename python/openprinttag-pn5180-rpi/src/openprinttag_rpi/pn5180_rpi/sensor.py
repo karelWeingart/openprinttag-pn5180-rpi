@@ -297,3 +297,4 @@ class ExtendedISO15693Sensor(ISO15693Sensor):
                 return b""
             finally:
                 self.__post_command()
+        return b""

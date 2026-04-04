@@ -27,8 +27,10 @@ class JobWatcherState:
     file_name: Optional[str] = None
     last_progress: float = 0.0
 
-    def create_completed_job(self, end_reason: str) -> CompletedJobDto:
+    def create_completed_job(self, end_reason: str) -> CompletedJobDto | None:
         """Create CompletedJobDto from current state."""
+        if self.metadata is None:
+            return None
 
         usage = calculate_filament_used(self.metadata, self.last_progress)
         return CompletedJobDto(
@@ -143,8 +145,9 @@ async def watch_jobs(
                     if not _job.is_printing and _job.metadata is not None
                 ]
                 for _completed_job in _completed_jobs:
-                    yield _completed_job
-                    remove_job_from_watchlist(_completed_job.job_id)
+                    if _completed_job:
+                        yield _completed_job
+                        remove_job_from_watchlist(_completed_job.job_id)
                 print(f"Downloaded metadata for {_gcode_downloaded} job(s).")
 
         except httpx.HTTPError as e:
