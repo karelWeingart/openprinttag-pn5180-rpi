@@ -221,62 +221,71 @@ def search_tag(
 def __pn5180_thread(reader: ExtendedISO15693Sensor) -> None:
     """Thread for reading rfid tags. Also handles write operations from queue."""
     while True:
-        # Check for pending write operations first
-        # if cancel message received,
-        # it will return None and continue to searching mode.
-        _openprinttag_data: bytes | None = get_openprinttag_bin()
+        try:
+            # Check for pending write operations first
+            # if cancel message received,
+            # it will return None and continue to searching mode.
+            _openprinttag_data: bytes | None = get_openprinttag_bin()
 
-        # Write mode
-        if _openprinttag_data:
-            _uid = search_tag(
-                reader, search_type=TagReadEvent.SEARCHING_WRITE, skip_cache=True
-            )
+            # Write mode
+            if _openprinttag_data:
+                _uid = search_tag(
+                    reader, search_type=TagReadEvent.SEARCHING_WRITE, skip_cache=True
+                )
+                if not _uid:
+                    continue
+
+                _filament_usage.cancel_not_processed_messages_for_tag(_uid)
+                write_openprinttag(reader, _uid, _openprinttag_data)
+                _wait_for_empty_queue()
+                continue
+
+            # Read mode - search for tags and read data
+            _uid = search_tag(reader)
+            # If _uid is None here, it means we got interrupted.
+            # and should write data to first tag detected.
             if not _uid:
                 continue
 
-            _filament_usage.cancel_not_processed_messages_for_tag(_uid)
-            write_openprinttag(reader, _uid, _openprinttag_data)
-            _wait_for_empty_queue()
-            continue
-
-        # Read mode - search for tags and read data
-        _uid = search_tag(reader)
-        # If _uid is None here, it means we got interrupted.
-        # and should write data to first tag detected.
-        if not _uid:
-            continue
-
-        _usage = _filament_usage.get_total_filament_usage_by_tag_uid_status(
-            _uid, "NOT_PROCESSED"
-        )
-        if _usage:
-            print(
-                f"Here we can save usage to the tag... UID: {_uid}, usage: {_usage}mm"
+            _usage = _filament_usage.get_total_filament_usage_by_tag_uid_status(
+                _uid, "NOT_PROCESSED"
             )
-
-        _main: OpenPrintTagMain | None = read_openprinttag(
-            reader, get_number_blocks(reader)
-        )
-        if _main:
-            __put_cache(_uid, _main)
-            register_event(
-                EventDto(
-                    event_type=TagReadEvent.SUCCESS_READ,
-                    data={
-                        "tag_info": TagDto.model_construct(
-                            **_main.model_dump(), tag_uid=_uid
-                        )
-                    },
+            if _usage:
+                print(
+                    f"Here we can save usage to the tag... UID: {_uid}, usage: {_usage}mm"
                 )
+
+            _main: OpenPrintTagMain | None = read_openprinttag(
+                reader, get_number_blocks(reader)
             )
-        else:
+            if _main:
+                __put_cache(_uid, _main)
+                register_event(
+                    EventDto(
+                        event_type=TagReadEvent.SUCCESS_READ,
+                        data={
+                            "tag_info": TagDto.model_construct(
+                                **_main.model_dump(), tag_uid=_uid
+                            )
+                        },
+                    )
+                )
+            else:
+                register_event(
+                    EventDto(
+                        event_type=TagReadEvent.ERROR,
+                        data={"error": f"Empty or corrupted tag data for UID: {_uid}"},
+                    )
+                )
+            _wait_for_empty_queue()
+        except Exception as e:
             register_event(
                 EventDto(
                     event_type=TagReadEvent.ERROR,
-                    data={"error": f"Empty or corrupted tag data for UID: {_uid}"},
+                    data={"error": f"Unhandled error in tag thread: {e}"},
                 )
             )
-        _wait_for_empty_queue()
+            time.sleep(_AFTER_READ_DELAY)
 
 
 def run(pi: pigpio.pi) -> None:
