@@ -194,7 +194,7 @@ def search_tag(
         # it returns True even if cancel message received,
         # so the searching loop is escaped.
         if has_openprinttag_bin():
-            return _uid
+            return None
 
         _uid = reader.read_tag()
         if not _uid:

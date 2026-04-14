@@ -15,9 +15,31 @@ openprinttag-pn5180-shared = { workspace = true }
 [dependency-groups]
 dev = [
     "mypy>=1.19.1",
+    "pytest>=8.0",
+    "pytest-cov>=6.0",
+    "pytest-mock>=3.15.1",
     "ruff>=0.8.0",
     "setuptools-scm>=9.2.2",
     "types-requests>=2.32.0",
+]
+
+[tool.pytest.ini_options]
+addopts = "--import-mode=importlib"
+testpaths = [
+    "openprinttag-pn5180-rpi/tests",
+    "openprinttag-pn5180-shared/tests",
+    "openprinttag-pn5180-web-api/tests",
+]
+
+[tool.mypy]
+explicit_package_bases = true
+mypy_path = [
+    "openprinttag-pn5180-rpi/src",
+    "openprinttag-pn5180-shared/src",
+    "openprinttag-pn5180-web-api/src",
+]
+exclude = [
+    "^openprinttag-pn5180-.*/tests/",
 ]
 
 [build-system]
