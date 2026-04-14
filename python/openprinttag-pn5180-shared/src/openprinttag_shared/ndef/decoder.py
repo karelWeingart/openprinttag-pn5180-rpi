@@ -3,7 +3,7 @@
 Uses ndeflib for NDEF record decoding, with custom TLV extraction.
 """
 
-import ndef  # type: ignore[import-untyped]
+import ndef  # type: ignore[import-untyped,import-not-found]
 from typing import Iterator
 
 

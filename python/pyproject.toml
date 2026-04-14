@@ -31,6 +31,17 @@ testpaths = [
     "openprinttag-pn5180-web-api/tests",
 ]
 
+[tool.mypy]
+explicit_package_bases = true
+mypy_path = [
+    "openprinttag-pn5180-rpi/src",
+    "openprinttag-pn5180-shared/src",
+    "openprinttag-pn5180-web-api/src",
+]
+exclude = [
+    "^openprinttag-pn5180-.*/tests/",
+]
+
 [build-system]
 requires = ["setuptools>=45", "wheel", "setuptools-scm>=7"]
 build-backend = "setuptools.build_meta"

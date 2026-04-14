@@ -3,7 +3,7 @@
 Uses ndeflib for NDEF record encoding, with custom TLV wrapping.
 """
 
-import ndef  # type: ignore[import-untyped]
+import ndef  # type: ignore[import-untyped,import-not-found]
 
 
 def build_ndef_message(records: list[ndef.Record]) -> bytes:
