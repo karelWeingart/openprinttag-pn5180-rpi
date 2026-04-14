@@ -37,6 +37,9 @@ jobs:
       - name: Sync dependencies
         run: uv sync --all-packages --all-groups
       
+      - name: Run tests
+        run: uv run pytest --cov --cov-report=xml --cov-report=term-missing --junitxml=reports/junit.xml .
+      
       - name: Build wheel
         run: |
           VERSION=${GITHUB_REF_NAME#v}
@@ -47,6 +50,14 @@ jobs:
         with:
           name: python-packages
           path: python/dist/*.*
+
+      - name: Upload test reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: |
+            python/reports/junit.xml
+            python/coverage.xml
 
   build-react-app:
     runs-on: ubuntu-latest
@@ -95,6 +106,12 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: react-app
+          path: dist/
+
+      - name: Download test reports
+        uses: actions/download-artifact@v4
+        with:
+          name: test-reports
           path: dist/
 
       - name: List release artifacts

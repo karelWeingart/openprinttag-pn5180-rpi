@@ -79,12 +79,22 @@ def remove_job_from_watchlist(job_id: int) -> None:
     if job_id in _jobs:
         del _jobs[job_id]
 
+def __evaluate_failed_download(
+    job_state: JobWatcherState, max_attempts: int, jobs_to_remove: list[int]
+) -> None:
+    """Evaluate failed gcode metadata download and update state accordingly."""
+    if not job_state.is_printing and job_state.gcode_download_attempts >= max_attempts:
+        jobs_to_remove.append(job_state.job_id)
+    elif not job_state.is_printing:
+        job_state.gcode_download_attempts += 1
+
 
 async def get_gcode_metadata_for_jobs(
     client: PrusaLinkClient, max_gcode_download_attempts: int
 ) -> int:
     """Download gcode metadata for any job that hasn't had it downloaded yet."""
     _downloaded_count = 0
+    _jobs_to_remove: list[int] = []
     for _job in _jobs.values():
         if not _job.gcode_downloaded:
             try:
@@ -93,18 +103,16 @@ async def get_gcode_metadata_for_jobs(
                     _job.metadata = _metadata
                     _job.gcode_downloaded = True
                     _downloaded_count += 1
-            except httpx.HTTPError as e:
-                if (
-                    not _job.is_printing
-                    and _job.gcode_download_attempts >= max_gcode_download_attempts
-                ):
-                    print(
-                        f"Max gcode download attempts reached for job {_job.job_id}. Skipping metadata."
-                    )
-                    remove_job_from_watchlist(_job.job_id)
-                elif not _job.is_printing:
-                    _job.gcode_download_attempts += 1
-                print(f"HTTP error while downloading gcode metadata: {e}")
+                else:
+                    __evaluate_failed_download(_job, max_gcode_download_attempts, _jobs_to_remove)
+            except (httpx.HTTPError, Exception) as e:
+                __evaluate_failed_download(_job, max_gcode_download_attempts, _jobs_to_remove)
+                print(f"HTTP error while downloading gcode metadata for job {_job.job_id}: {e}")
+    
+    # Remove any jobs that exceeded max attempts
+    for _job_id in _jobs_to_remove:
+        remove_job_from_watchlist(_job_id)
+    
     return _downloaded_count
 
 
@@ -146,8 +154,8 @@ async def watch_jobs(
                 ]
                 for _completed_job in _completed_jobs:
                     if _completed_job:
-                        yield _completed_job
                         remove_job_from_watchlist(_completed_job.job_id)
+                        yield _completed_job                        
                 print(f"Downloaded metadata for {_gcode_downloaded} job(s).")
 
         except httpx.HTTPError as e:
